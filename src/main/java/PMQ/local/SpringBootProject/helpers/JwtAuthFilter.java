@@ -1,0 +1,142 @@
+package PMQ.local.SpringBootProject.helpers;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.lang.NonNull;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import PMQ.local.SpringBootProject.modules.users.services.impls.CustomUserDetailsService;
+import PMQ.local.SpringBootProject.services.JwtService;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.constraints.NotNull;
+import lombok.RequiredArgsConstructor;
+import tools.jackson.databind.ObjectMapper;
+
+@Component
+@RequiredArgsConstructor
+public class JwtAuthFilter extends OncePerRequestFilter {
+
+    private final JwtService jwtService;
+    private final CustomUserDetailsService customUserDetailsService;
+    private final ObjectMapper objectMapper;
+
+    private static final Logger logger = LoggerFactory.getLogger(JwtAuthFilter.class);
+
+    @Override
+    protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
+        String path = request.getRequestURI();
+        return path.startsWith("/v1/auth/login");
+    }
+
+    @Override
+    public void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response,
+            @NonNull FilterChain filterChain)
+            throws ServletException, IOException {
+
+        try {
+            final String authHeader = request.getHeader("Authorization");
+            final String jwt;
+            final String userId;
+
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                logger.info("Test");
+                sendErrorResponse(response, request, HttpServletResponse.SC_UNAUTHORIZED,
+                        "Unsuccessful Authentication",
+                        "Missing token");
+                // filterChain.doFilter(request, response);
+                return;
+            }
+
+            jwt = authHeader.substring(7);
+
+            if (!jwtService.isTokenFormatValid(jwt)) {
+                sendErrorResponse(response, request, HttpServletResponse.SC_UNAUTHORIZED, "Unsuccessful Authentication",
+                        "Invalid token format. Please provide a valid JWT token.");
+                return;
+            }
+
+            if (!jwtService.isTokenSignatureValid(jwt)) {
+                sendErrorResponse(response, request, HttpServletResponse.SC_UNAUTHORIZED, "Unsuccessful Authentication",
+                        "Invalid token signature. The token may have been tampered with or is not signed correctly.");
+                return;
+            }
+
+            if (!jwtService.isIssuerToken(jwt)) {
+                sendErrorResponse(response, request, HttpServletResponse.SC_UNAUTHORIZED, "Unsuccessful Authentication",
+                        "Invalid token issuer. The token was not issued by a trusted source.");
+                return;
+            }
+
+            if (!jwtService.isTokenExpired(jwt)) {
+                sendErrorResponse(response, request, HttpServletResponse.SC_UNAUTHORIZED, "Unsuccessful Authentication",
+                        "Token has expired. Please log in again to obtain a new token.");
+                return;
+            }
+
+            userId = jwtService.getUserIdFromJwt(jwt);
+            if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails userDetails = customUserDetailsService.loadUserByUsername(userId);
+
+                // logger.info("userDetails: " + userDetails.getUsername());
+
+                final String emailFromToken = jwtService.getEmailFromJwt(jwt);
+                if (!emailFromToken.equals(userDetails.getUsername())) {
+                    sendErrorResponse(response, request, HttpServletResponse.SC_UNAUTHORIZED,
+                            "Unsuccessful Authentication",
+                            "Invalid email in token. The email in the token does not match the authenticated user's email.");
+                    return;
+                }
+
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        userDetails.getAuthorities());
+
+                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                SecurityContextHolder.getContext().setAuthentication(authToken);
+                logger.info("Authenticated successfully: " + userDetails.getUsername());
+
+                logger.info(userDetails.getUsername() + " is authenticated, setting security context");
+            }
+
+            filterChain.doFilter(request, response);
+        } catch (ServletException | IOException e) {
+            sendErrorResponse(response, request, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Network Error",
+                    e.getMessage());
+        }
+    }
+
+    private void sendErrorResponse(@NotNull HttpServletResponse response, @NotNull HttpServletRequest request,
+            int statusCode, String error,
+            String message) throws IOException {
+
+        response.setStatus(statusCode);
+        response.setContentType("application/json;charset=UTF-8");
+
+        Map<String, Object> errorResponse = new HashMap<>();
+
+        errorResponse.put("timestamp", System.currentTimeMillis());
+        errorResponse.put("status", statusCode);
+        errorResponse.put("error", error);
+        errorResponse.put("message", message);
+        errorResponse.put("path", request.getRequestURI());
+
+        String jsonResponse = objectMapper.writeValueAsString(errorResponse);
+
+        response.getWriter().write(jsonResponse);
+    }
+}
