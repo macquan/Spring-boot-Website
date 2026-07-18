@@ -51,7 +51,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             final String userId;
 
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                logger.info("Test");
+                // logger.info("Test");
                 sendErrorResponse(response, request, HttpServletResponse.SC_UNAUTHORIZED,
                         "Unsuccessful Authentication",
                         "Missing token");
@@ -85,6 +85,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 return;
             }
 
+            if (jwtService.isBlacklistedToken(jwt)) {
+                sendErrorResponse(response, request, HttpServletResponse.SC_UNAUTHORIZED, "Unsuccessful Authentication",
+                        "Token is blacklisted. Please log in again to obtain a new token.");
+                return;
+            }
+
             userId = jwtService.getUserIdFromJwt(jwt);
             if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = customUserDetailsService.loadUserByUsername(userId);
@@ -107,9 +113,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                 SecurityContextHolder.getContext().setAuthentication(authToken);
-                logger.info("Authenticated successfully: " + userDetails.getUsername());
+                // logger.info("Authenticated successfully: " + userDetails.getUsername());
 
-                logger.info(userDetails.getUsername() + " is authenticated, setting security context");
+                // logger.info(userDetails.getUsername() + " is authenticated, setting security
+                // context");
             }
 
             filterChain.doFilter(request, response);

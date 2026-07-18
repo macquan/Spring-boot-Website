@@ -7,9 +7,11 @@ import java.util.function.Function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import PMQ.local.SpringBootProject.config.JwtConfig;
+import PMQ.local.SpringBootProject.modules.users.repositories.BlacklistedTokenRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -23,6 +25,9 @@ public class JwtService {
     private final Key key;
 
     private static final Logger logger = LoggerFactory.getLogger(JwtService.class);
+
+    @Autowired
+    private BlacklistedTokenRepository blacklistedTokenRepository;
 
     public JwtService(JwtConfig jwtConfig) {
         this.jwtConfig = jwtConfig;
@@ -147,7 +152,7 @@ public class JwtService {
 
     public boolean isTokenSignatureValid(String token) {
         try {
-            logger.info(token);
+            // logger.info(token);
             Jwts.parserBuilder()
                     .setSigningKey(getSigningKey())
                     .build()
@@ -179,7 +184,11 @@ public class JwtService {
         return jwtConfig.getIssuer().equals(tokenIssuer);
     }
 
-    private Claims getAllClaimsFromToken(String token) {
+    public boolean isBlacklistedToken(String token) {
+        return blacklistedTokenRepository.existsByToken(token);
+    }
+
+    public Claims getAllClaimsFromToken(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
                 .build()
