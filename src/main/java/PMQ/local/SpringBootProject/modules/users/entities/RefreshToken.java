@@ -15,21 +15,21 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-// Cứ mỗi table sẽ có một entity tương ứng, và mỗi entity sẽ có một repository tương ứng. Repository này sẽ được sử dụng để thực hiện các thao tác CRUD (Create, Read, Update, Delete) trên cơ sở dữ liệu. Trong trường hợp này, BlacklistedToken là entity cho table blacklisted_tokens, cho phép bạn lưu trữ và truy xuất các token bị đưa vào danh sách đen.
+// Cứ mỗi table sẽ có một entity tương ứng, và mỗi entity sẽ có một repository tương ứng. Repository này sẽ được sử dụng để thực hiện các thao tác CRUD (Create, Read, Update, Delete) trên cơ sở dữ liệu. Trong trường hợp này, RefreshToken là entity cho table refresh_tokens, cho phép bạn lưu trữ và truy xuất các token làm mới.
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Data // Dùng để tự động tạo các phương thức getter, setter, toString, equals và
       // hashCode
 @Entity // Dùng để đánh dấu lớp này là một thực thể (entity) trong JPA
-@Table(name = "blacklisted_tokens")
-public class BlacklistedToken {
+@Table(name = "refresh_tokens")
+public class RefreshToken {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // Tự động sinh giá trị cho trường id
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private String token;
+    @Column(name = "refresh_token", nullable = false, unique = true)
+    private String refreshToken;
 
     @Column(name = "expiry_date", nullable = false)
     private LocalDateTime expiryDate;

@@ -1,5 +1,7 @@
 package PMQ.local.SpringBootProject.modules.users.controllers;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -12,8 +14,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import PMQ.local.SpringBootProject.modules.users.dtos.requests.BlacklistTokenRequest;
 import PMQ.local.SpringBootProject.modules.users.dtos.requests.LoginRequest;
+import PMQ.local.SpringBootProject.modules.users.dtos.requests.RefreshTokenRequest;
 import PMQ.local.SpringBootProject.modules.users.dtos.resources.LoginResource;
 import PMQ.local.SpringBootProject.modules.users.dtos.resources.MessageResource;
+import PMQ.local.SpringBootProject.modules.users.dtos.resources.TokenResource;
 import PMQ.local.SpringBootProject.modules.users.services.impls.BlacklistService;
 import PMQ.local.SpringBootProject.modules.users.services.interfaces.UserServiceInterface;
 import PMQ.local.SpringBootProject.services.JwtService;
@@ -25,6 +29,8 @@ import jakarta.validation.Valid;
 public class AuthController {
 
     private final UserServiceInterface userService;
+
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     @Autowired
     private BlacklistService blacklistService;
@@ -76,5 +82,14 @@ public class AuthController {
             return ResponseEntity.internalServerError()
                     .body(new MessageResource("Network error occurred while logging out"));
         }
+    }
+
+    // Thêm phương thức refresh token
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
+        String refreshToken = request.getRefreshToken();
+        logger.info("Received refresh token: {}", refreshToken);
+
+        return ResponseEntity.ok("test");
     }
 }

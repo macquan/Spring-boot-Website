@@ -44,6 +44,8 @@ public class UserService extends BaseService implements UserServiceInterface {
         UserResource userResource = new UserResource(user.getId(), user.getEmail(), user.getName(), user.getPhone());
         String token = jwtService.generateToken(user.getId(), user.getEmail());
 
-        return new LoginResource(token, userResource);
+        String refreshToken = jwtService.generateRefreshToken(user.getId(), user.getEmail());
+
+        return new LoginResource(token, refreshToken, userResource);
     }
 }

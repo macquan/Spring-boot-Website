@@ -1,6 +1,7 @@
 package PMQ.local.SpringBootProject.services;
 
 import java.security.Key;
+import java.time.ZoneId;
 import java.util.Base64;
 import java.util.Date;
 import java.util.function.Function;
@@ -11,13 +12,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import PMQ.local.SpringBootProject.config.JwtConfig;
+import PMQ.local.SpringBootProject.modules.users.entities.RefreshToken;
 import PMQ.local.SpringBootProject.modules.users.repositories.BlacklistedTokenRepository;
+import PMQ.local.SpringBootProject.modules.users.repositories.RefreshTokenRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import io.jsonwebtoken.security.SignatureException;
 
 @Service
 public class JwtService {
@@ -28,6 +30,9 @@ public class JwtService {
 
     @Autowired
     private BlacklistedTokenRepository blacklistedTokenRepository;
+
+    @Autowired
+    private RefreshTokenRepository refreshTokenRepository;
 
     public JwtService(JwtConfig jwtConfig) {
         this.jwtConfig = jwtConfig;
@@ -41,13 +46,36 @@ public class JwtService {
 
         return Jwts.builder() // Trả về một chuỗi JWT được tạo ra từ thông tin người dùng và thời gian hết
                               // hạn.
-                .setSubject(userId.toString())
+                .setSubject(String.valueOf(userId)) // Đặt subject của token là userId, được chuyển đổi thành chuỗi.
                 .claim("email", email)
                 .setIssuer(jwtConfig.getIssuer())
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(key, SignatureAlgorithm.HS512)
                 .compact();
+    }
+
+    public String generateRefreshToken(Long userId, String email) {
+        logger.info("Generating refresh token ...");
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + jwtConfig.getRefreshTokenExpirationTime());
+
+        String refreshToken = Jwts.builder()
+                .setSubject(String.valueOf(userId))
+                .claim("email", email)
+                .setIssuer(jwtConfig.getIssuer())
+                .setIssuedAt(now)
+                .setExpiration(expiryDate)
+                .signWith(key, SignatureAlgorithm.HS512)
+                .compact();
+
+        RefreshToken insertToken = new RefreshToken();
+        insertToken.setRefreshToken(refreshToken);
+        insertToken.setExpiryDate(expiryDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
+        insertToken.setUserId(userId);
+        refreshTokenRepository.save(insertToken);
+
+        return refreshToken;
     }
 
     // public String extractUsername(String token) {
@@ -158,7 +186,7 @@ public class JwtService {
                     .build()
                     .parseClaimsJws(token);
             return true; // If parsing is successful, the signature is valid
-        } catch (SignatureException e) {
+        } catch (Exception e) {
             return false;
         }
     }
@@ -170,11 +198,13 @@ public class JwtService {
 
     public boolean isTokenExpired(String token) {
         try {
-            final Date expiration = getClaimFromToken(token, Claims::getExpiration);
-            return expiration.after(new Date());
+            Claims claims = getAllClaimsFromToken(token);
+            return claims.getExpiration().before(new Date());
 
         } catch (ExpiredJwtException e) {
-            return false; // Token đã hết hạn, nhưng chúng ta vẫn muốn xử lý nó trong JwtAuthFilter.java
+            return true; // Token đã hết hạn
+        } catch (Exception e) {
+            return false; // Token không hợp lệ hoặc có lỗi khác, nhưng không phải là hết hạn
         }
 
     }
@@ -189,15 +219,43 @@ public class JwtService {
     }
 
     public Claims getAllClaimsFromToken(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (Exception e) {
+            logger.error("Error while parsing token: " + e.getMessage());
+            return null;
+        }
+
     }
 
-    private <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
+    // public <T> giúp định nghĩa một phương thức tổng quát (generic method) trong
+    // Java. Phương thức này có thể trả về bất kỳ kiểu dữ liệu nào được chỉ định bởi
+    // T. Trong trường hợp này, phương thức getClaimFromToken nhận vào một token và
+    // một Function<Claims, T> claimsResolver, cho phép bạn trích xuất thông tin cụ
+    // thể từ Claims của JWT token.
+    public <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = getAllClaimsFromToken(token);
         return claimsResolver.apply(claims);
     }
+
+    public boolean isRefreshTokenValid(String token) {
+        try {
+            Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token);
+            RefreshToken refreshToken = refreshTokenRepository.findByRefreshToken(token)
+                    .orElseThrow(() -> new RuntimeException("Refresh token not found in database"));
+
+            final Date expiration = getClaimFromToken(refreshToken.getRefreshToken(), Claims::getExpiration);
+            return refreshToken != null && expiration.after(new Date());
+        } catch (Exception e) {
+            return false; // Refresh token is invalid
+        }
+    }
+
 }

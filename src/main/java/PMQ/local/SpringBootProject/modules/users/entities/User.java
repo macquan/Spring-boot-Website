@@ -14,6 +14,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+// Cứ mỗi table sẽ có một entity tương ứng, và mỗi entity sẽ có một repository tương ứng. Repository này sẽ được sử dụng để thực hiện các thao tác CRUD (Create, Read, Update, Delete) trên cơ sở dữ liệu. Trong trường hợp này, User là entity cho table users, cho phép bạn lưu trữ và truy xuất thông tin người dùng.
+
 @NoArgsConstructor // Tự động tạo constructor không tham số
 @AllArgsConstructor // Tự động tạo constructor không tham số và constructor với tất cả các tham số
 @Data // Tự động tạo các phương thức getter, setter, toString, equals và hashCode
