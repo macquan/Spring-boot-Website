@@ -1,5 +1,6 @@
 package PMQ.local.SpringBootProject.modules.users.repositories;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,4 +17,7 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long
                                                        // không
 
     Optional<RefreshToken> findByRefreshToken(String refreshToken); // Tìm kiếm token làm mới theo giá trị của nó
+
+    Optional<RefreshToken> findByUserId(Long userId); // Tìm kiếm token làm mới theo ID người dùng
+
 }

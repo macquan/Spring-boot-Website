@@ -17,7 +17,7 @@ import PMQ.local.SpringBootProject.modules.users.dtos.requests.LoginRequest;
 import PMQ.local.SpringBootProject.modules.users.dtos.requests.RefreshTokenRequest;
 import PMQ.local.SpringBootProject.modules.users.dtos.resources.LoginResource;
 import PMQ.local.SpringBootProject.modules.users.dtos.resources.MessageResource;
-import PMQ.local.SpringBootProject.modules.users.dtos.resources.TokenResource;
+import PMQ.local.SpringBootProject.modules.users.dtos.resources.RefreshTokenResource;
 import PMQ.local.SpringBootProject.modules.users.services.impls.BlacklistService;
 import PMQ.local.SpringBootProject.modules.users.services.interfaces.UserServiceInterface;
 import PMQ.local.SpringBootProject.services.JwtService;
@@ -66,7 +66,8 @@ public class AuthController {
     // Viết thêm đăng xuất, token sẽ được thêm vào danh sách đen trong phương thức
     // logout
     @GetMapping("/logout")
-    public ResponseEntity<?> logout(@RequestHeader("Authorization") String bearerToken) {
+    public ResponseEntity<?> logout(@RequestHeader("Authorization") String bearerToken) { // RequestHeader để lấy token
+                                                                                          // từ header Authorization
         try {
 
             String token = bearerToken.substring(7); // Loại bỏ "Bearer " khỏi chuỗi token
@@ -88,8 +89,15 @@ public class AuthController {
     @PostMapping("/refresh")
     public ResponseEntity<?> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
         String refreshToken = request.getRefreshToken();
-        logger.info("Received refresh token: {}", refreshToken);
+        if (!jwtService.isRefreshTokenValid(refreshToken)) {
+            return ResponseEntity.status(401).body(new MessageResource("Invalid refresh token"));
+        }
 
-        return ResponseEntity.ok("test");
+        Long userId = Long.valueOf(jwtService.getUserIdFromJwt(refreshToken));
+        String email = jwtService.getEmailFromJwt(refreshToken);
+        String newToken = jwtService.generateToken(userId, email);
+        String newRefreshToken = jwtService.generateRefreshToken(userId, email);
+
+        return ResponseEntity.ok(new RefreshTokenResource(newToken, newRefreshToken));
     }
 }

@@ -1,9 +1,12 @@
 package PMQ.local.SpringBootProject.services;
 
 import java.security.Key;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Base64;
 import java.util.Date;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Function;
 
 import org.slf4j.Logger;
@@ -16,7 +19,6 @@ import PMQ.local.SpringBootProject.modules.users.entities.RefreshToken;
 import PMQ.local.SpringBootProject.modules.users.repositories.BlacklistedTokenRepository;
 import PMQ.local.SpringBootProject.modules.users.repositories.RefreshTokenRepository;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -69,13 +71,30 @@ public class JwtService {
                 .signWith(key, SignatureAlgorithm.HS512)
                 .compact();
 
-        RefreshToken insertToken = new RefreshToken();
-        insertToken.setRefreshToken(refreshToken);
-        insertToken.setExpiryDate(expiryDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
-        insertToken.setUserId(userId);
-        refreshTokenRepository.save(insertToken);
+        // String refreshToken = UUID.randomUUID().toString(); // Sử dụng UUID để tạo
+        // refresh token ngẫu nhiên
 
+        LocalDateTime localExpiryDate = expiryDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+
+        Optional<RefreshToken> optionalRefreshToken = refreshTokenRepository.findByUserId(userId);
+
+        if (optionalRefreshToken.isPresent()) { // isPresent() kiểm tra xem Optional có chứa giá trị hay không. Nếu có,
+                                                // nó trả về true, ngược lại trả về false.
+            RefreshToken dBRefreshToken = optionalRefreshToken.get();
+            dBRefreshToken.setRefreshToken(refreshToken);
+            dBRefreshToken.setExpiryDate(localExpiryDate);
+            refreshTokenRepository.save(dBRefreshToken);
+
+        } else {
+            RefreshToken insertToken = new RefreshToken();
+            insertToken.setRefreshToken(refreshToken);
+            insertToken.setExpiryDate(localExpiryDate);
+            insertToken.setUserId(userId);
+            refreshTokenRepository.save(insertToken);
+
+        }
         return refreshToken;
+
     }
 
     // public String extractUsername(String token) {
@@ -199,10 +218,13 @@ public class JwtService {
     public boolean isTokenExpired(String token) {
         try {
             Claims claims = getAllClaimsFromToken(token);
-            return claims.getExpiration().before(new Date());
 
-        } catch (ExpiredJwtException e) {
-            return true; // Token đã hết hạn
+            if (claims != null) {
+                return claims.getExpiration().before(new Date());
+            } else {
+                return true; // Token không hợp lệ, coi như hết hạn
+            }
+
         } catch (Exception e) {
             return false; // Token không hợp lệ hoặc có lỗi khác, nhưng không phải là hết hạn
         }
@@ -251,8 +273,12 @@ public class JwtService {
             RefreshToken refreshToken = refreshTokenRepository.findByRefreshToken(token)
                     .orElseThrow(() -> new RuntimeException("Refresh token not found in database"));
 
-            final Date expiration = getClaimFromToken(refreshToken.getRefreshToken(), Claims::getExpiration);
-            return refreshToken != null && expiration.after(new Date());
+            LocalDateTime expirationLocalDateTime = refreshToken.getExpiryDate();
+            Date expirationDate = Date.from(expirationLocalDateTime.atZone(ZoneId.systemDefault()).toInstant());
+
+            // final Date expiration = getClaimFromToken(refreshToken.getRefreshToken(),
+            // Claims::getExpiration);
+            return expirationDate.after(new Date());
         } catch (Exception e) {
             return false; // Refresh token is invalid
         }

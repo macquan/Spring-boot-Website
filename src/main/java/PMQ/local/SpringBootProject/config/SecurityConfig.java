@@ -33,8 +33,10 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         // 1. Routes AUTH = no JWT
-                        .requestMatchers("/v1/auth/login").permitAll() // Allow access to /v1/auth/login without
-                                                                       // authentication
+                        .requestMatchers("/v1/auth/login", "/v1/auth/refresh").permitAll() // Allow access to
+                                                                                           // /v1/auth/login and
+                                                                                           // /v1/auth/refresh without
+                        // authentication
                         // 2. Routes PUBLIC
                         .requestMatchers("/v1/products").permitAll()
                         .anyRequest().authenticated() // Require authentication for all other requests
