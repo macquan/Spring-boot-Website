@@ -6,12 +6,14 @@ import java.util.Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import PMQ.local.SpringBootProject.modules.users.dtos.requests.BlacklistTokenRequest;
-import PMQ.local.SpringBootProject.modules.users.dtos.resources.MessageResource;
 import PMQ.local.SpringBootProject.modules.users.entities.BlacklistedToken;
 import PMQ.local.SpringBootProject.modules.users.repositories.BlacklistedTokenRepository;
+import PMQ.local.SpringBootProject.resources.APIResource;
+import PMQ.local.SpringBootProject.resources.MessageResource;
 import PMQ.local.SpringBootProject.services.JwtService;
 import io.jsonwebtoken.Claims;
 
@@ -33,7 +35,8 @@ public class BlacklistService {
     public Object create(BlacklistTokenRequest request) {
         try {
             if (blacklistedTokenRepository.existsByToken(request.getToken())) {
-                return new MessageResource("Token already exists in the blacklist");
+                return APIResource.error("TOKEN_ERROR", "Token already exists in the blacklist",
+                        HttpStatus.BAD_REQUEST);
             }
 
             Claims claims = jwtService.getAllClaimsFromToken(request.getToken());

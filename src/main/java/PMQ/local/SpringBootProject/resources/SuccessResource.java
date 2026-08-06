@@ -1,4 +1,4 @@
-package PMQ.local.SpringBootProject.modules.users.dtos.resources;
+package PMQ.local.SpringBootProject.resources;
 
 public class SuccessResource<T> { // <T> là một generic type parameter, cho phép bạn định nghĩa một lớp có thể làm
                                   // việc với nhiều loại dữ liệu khác nhau mà không cần phải tạo ra nhiều lớp

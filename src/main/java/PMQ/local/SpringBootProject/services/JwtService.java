@@ -6,7 +6,6 @@ import java.time.ZoneId;
 import java.util.Base64;
 import java.util.Date;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.function.Function;
 
 import org.slf4j.Logger;
@@ -19,6 +18,7 @@ import PMQ.local.SpringBootProject.modules.users.entities.RefreshToken;
 import PMQ.local.SpringBootProject.modules.users.repositories.BlacklistedTokenRepository;
 import PMQ.local.SpringBootProject.modules.users.repositories.RefreshTokenRepository;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -205,6 +205,9 @@ public class JwtService {
                     .build()
                     .parseClaimsJws(token);
             return true; // If parsing is successful, the signature is valid
+        } catch (ExpiredJwtException e) {
+            logger.warn("Token expired while validating signature: {}", e.getMessage());
+            return true;
         } catch (Exception e) {
             return false;
         }
@@ -247,6 +250,9 @@ public class JwtService {
                     .build()
                     .parseClaimsJws(token)
                     .getBody();
+        } catch (ExpiredJwtException e) {
+            logger.warn("Token has expired: " + e.getMessage());
+            return e.getClaims(); // Trả về claims ngay cả khi token đã hết hạn
         } catch (Exception e) {
             logger.error("Error while parsing token: " + e.getMessage());
             return null;

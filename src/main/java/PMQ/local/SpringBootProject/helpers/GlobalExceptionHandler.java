@@ -11,7 +11,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import PMQ.local.SpringBootProject.modules.users.dtos.resources.ErrorResource;
+import PMQ.local.SpringBootProject.resources.ErrorResource;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {

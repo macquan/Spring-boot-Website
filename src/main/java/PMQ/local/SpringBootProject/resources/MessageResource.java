@@ -1,4 +1,4 @@
-package PMQ.local.SpringBootProject.modules.users.dtos.resources;
+package PMQ.local.SpringBootProject.resources;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

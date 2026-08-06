@@ -3,6 +3,7 @@ package PMQ.local.SpringBootProject.modules.users.controllers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,10 +17,11 @@ import PMQ.local.SpringBootProject.modules.users.dtos.requests.BlacklistTokenReq
 import PMQ.local.SpringBootProject.modules.users.dtos.requests.LoginRequest;
 import PMQ.local.SpringBootProject.modules.users.dtos.requests.RefreshTokenRequest;
 import PMQ.local.SpringBootProject.modules.users.dtos.resources.LoginResource;
-import PMQ.local.SpringBootProject.modules.users.dtos.resources.MessageResource;
 import PMQ.local.SpringBootProject.modules.users.dtos.resources.RefreshTokenResource;
 import PMQ.local.SpringBootProject.modules.users.services.impls.BlacklistService;
 import PMQ.local.SpringBootProject.modules.users.services.interfaces.UserServiceInterface;
+import PMQ.local.SpringBootProject.resources.APIResource;
+import PMQ.local.SpringBootProject.resources.MessageResource;
 import PMQ.local.SpringBootProject.services.JwtService;
 import jakarta.validation.Valid;
 
@@ -44,10 +46,24 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResource> login(@Valid @RequestBody LoginRequest request) {
-        LoginResource auth = userService.authenticate(request);
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
+        // LoginResource auth = userService.authenticate(request);
 
-        return ResponseEntity.ok(auth);
+        // return ResponseEntity.ok(auth);
+
+        Object result = userService.authenticate(request);
+
+        if (result instanceof LoginResource loginResource) {
+            APIResource<LoginResource> response = APIResource.ok(loginResource, "Login successful");
+            return ResponseEntity.ok(response);
+        }
+
+        if (result instanceof APIResource errorResource) {
+            return ResponseEntity.unprocessableEntity().body(errorResource);
+        }
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Network error occurred while processing login request");
     }
 
     @PostMapping("/blacklisted_tokens")
@@ -58,7 +74,7 @@ public class AuthController {
 
         } catch (Exception e) {
             return ResponseEntity.internalServerError()
-                    .body(new MessageResource("Network error occurred while adding token to blacklist"));
+                    .body(new MessageResource("Error occurred while adding token to blacklist"));
         }
 
     }
@@ -74,14 +90,18 @@ public class AuthController {
 
             BlacklistTokenRequest request = new BlacklistTokenRequest();
             request.setToken(token);
+            blacklistService.create(request);
 
-            Object message = blacklistService.create(request);
+            APIResource<Void> response = APIResource.<Void>builder().success(true)
+                    .message("Successfully logged out").status(HttpStatus.OK).build();
 
-            return ResponseEntity.ok(message);
+            return ResponseEntity.ok(response);
 
         } catch (Exception e) {
+            APIResource<Void> errorResponse = APIResource.<Void>builder().success(false)
+                    .message("Error occurred while logging out").status(HttpStatus.INTERNAL_SERVER_ERROR).build();
             return ResponseEntity.internalServerError()
-                    .body(new MessageResource("Network error occurred while logging out"));
+                    .body(errorResponse);
         }
     }
 
