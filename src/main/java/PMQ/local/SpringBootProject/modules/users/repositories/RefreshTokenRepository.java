@@ -20,4 +20,5 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long
 
     Optional<RefreshToken> findByUserId(Long userId); // Tìm kiếm token làm mới theo ID người dùng
 
+    int deleteByExpiryDateBefore(LocalDateTime currentDateTime);
 }

@@ -1,5 +1,7 @@
 package PMQ.local.SpringBootProject.modules.users.repositories;
 
+import java.time.LocalDateTime;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -12,4 +14,6 @@ import PMQ.local.SpringBootProject.modules.users.entities.BlacklistedToken;
 public interface BlacklistedTokenRepository extends JpaRepository<BlacklistedToken, Long> {
     // Các phương thức truy vấn tùy chỉnh có thể được định nghĩa ở đây nếu cần
     boolean existsByToken(String token); // Kiểm tra xem token có tồn tại trong danh sách đen hay không
+
+    int deleteByExpiryDateBefore(LocalDateTime currentDateTime); // Xóa các token đã hết hạn khỏi danh sách đen
 }
