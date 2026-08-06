@@ -3,6 +3,7 @@ package PMQ.local.SpringBootProject.modules.users.services.impls;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,6 +33,9 @@ public class UserService extends BaseService implements UserServiceInterface {
     @Autowired
     private UserRepository userRepository;
 
+    @Value("${jwt.defaultExpiration}")
+    private long defaultExpiration;
+
     @Override
     public Object authenticate(LoginRequest request) {
         try {
@@ -45,7 +49,7 @@ public class UserService extends BaseService implements UserServiceInterface {
 
             UserResource userResource = new UserResource(user.getId(), user.getEmail(), user.getName(),
                     user.getPhone());
-            String token = jwtService.generateToken(user.getId(), user.getEmail());
+            String token = jwtService.generateToken(user.getId(), user.getEmail(), defaultExpiration);
 
             String refreshToken = jwtService.generateRefreshToken(user.getId(), user.getEmail());
 
