@@ -25,7 +25,8 @@ import PMQ.local.SpringBootProject.resources.MessageResource;
 import PMQ.local.SpringBootProject.services.JwtService;
 import jakarta.validation.Valid;
 
-@Validated
+@Validated // Dùng để kích hoạt việc kiểm tra các ràng buộc (constraints) trên các tham số
+           // của phương thức trong controller.
 @RestController
 @RequestMapping("/v1/auth")
 public class AuthController {

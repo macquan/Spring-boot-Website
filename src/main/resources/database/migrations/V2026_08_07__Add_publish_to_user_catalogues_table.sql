@@ -1,0 +1,2 @@
+ALTER TABLE user_catalogues
+ADD COLUMN publish TINYINT(1) NOT NULL DEFAULT 1; --publish là cột để xác định xem catalogue có được xuất bản hay không. Giá trị 1 đại diện cho "xuất bản" và giá trị 0 đại diện cho "không xuất bản".
