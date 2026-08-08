@@ -28,7 +28,7 @@ import jakarta.validation.Valid;
 @Validated // Dùng để kích hoạt việc kiểm tra các ràng buộc (constraints) trên các tham số
            // của phương thức trong controller.
 @RestController
-@RequestMapping("/v1/auth")
+@RequestMapping("/api/v1/auth")
 public class AuthController {
 
     private final UserServiceInterface userService;

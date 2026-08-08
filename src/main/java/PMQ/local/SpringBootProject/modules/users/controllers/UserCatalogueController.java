@@ -1,11 +1,14 @@
 package PMQ.local.SpringBootProject.modules.users.controllers;
 
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -17,27 +20,46 @@ import PMQ.local.SpringBootProject.modules.users.dtos.requests.UserCatalogue.Sto
 import PMQ.local.SpringBootProject.modules.users.dtos.requests.UserCatalogue.UpdateRequest;
 import PMQ.local.SpringBootProject.modules.users.dtos.resources.UserCatalogueResource;
 import PMQ.local.SpringBootProject.modules.users.entities.UserCatalogue;
-import PMQ.local.SpringBootProject.modules.users.repositories.UserCatalogueRepository;
+import PMQ.local.SpringBootProject.modules.users.services.impls.UserCatalogueService;
 import PMQ.local.SpringBootProject.modules.users.services.interfaces.UserCatalogueServiceInterface;
 import PMQ.local.SpringBootProject.resources.APIResource;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest; // Dùng để làm việc với các yêu cầu HTTP trong Spring Boot.
 import jakarta.validation.Valid;
 
 @Validated // Dùng để kích hoạt việc kiểm tra các ràng buộc (constraints) trên các tham số
            // của phương thức trong controller.
 @RestController
-@RequestMapping("/v1")
+@RequestMapping("/api/v1")
 public class UserCatalogueController {
 
     private static final Logger logger = LoggerFactory.getLogger(UserCatalogueController.class);
 
     private final UserCatalogueServiceInterface userCatalogueService;
 
-    @Autowired
-    private UserCatalogueRepository userCatalogueRepository;
-
     public UserCatalogueController(UserCatalogueServiceInterface userCatalogueService) {
         this.userCatalogueService = userCatalogueService;
+    }
+
+    @GetMapping("/user_catalogues")
+    // Get all user catalogues
+    public ResponseEntity<?> index(HttpServletRequest request) {
+
+        Map<String, String[]> parameters = request.getParameterMap();
+
+        Page<UserCatalogue> userCatalogues = userCatalogueService.paginate(parameters);
+
+        Page<UserCatalogueResource> userCatalogueResources = userCatalogues
+                .map(userCatalogue -> UserCatalogueResource.builder()
+                        .id(userCatalogue.getId())
+                        .name(userCatalogue.getName())
+                        .publish(userCatalogue.getPublish())
+                        .build());
+
+        APIResource<Page<UserCatalogueResource>> response = APIResource.ok(userCatalogueResources,
+                "User catalogues retrieved successfully");
+
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("user_catalogues")

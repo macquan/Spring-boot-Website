@@ -1,6 +1,12 @@
 package PMQ.local.SpringBootProject.modules.users.services.impls;
 
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page; // Dùng để làm việc với các trang dữ liệu (pagination) trong Spring Data.
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +24,32 @@ public class UserCatalogueService extends BaseService implements UserCatalogueSe
 
     @Autowired
     private UserCatalogueRepository userCatalogueRepository;
+
+    @Override
+    public Page<UserCatalogue> paginate(Map<String, String[]> parameters) {
+
+        int page = parameters.containsKey("page") ? Integer.parseInt(parameters.get("page")[0]) : 1; // Lấy số trang từ
+                                                                                                     // tham số "page",
+                                                                                                     // mặc định là 1
+                                                                                                     // nếu không có.
+
+        // Lấy số lượng bản ghi trên mỗi trang từ tham số "per_page", mặc định là 20 nếu
+        // không có.
+        int perPage = parameters.containsKey("per_page") ? Integer.parseInt(parameters.get("per_page")[0]) : 20;
+
+        String sortParam = parameters.containsKey("sort") ? parameters.get("sort")[0] : null; // Lấy tham số "sort" từ
+                                                                                              // parameters, mặc định là
+                                                                                              // null nếu không có.
+
+        Sort sort = createSort(sortParam); // Gọi phương thức createSort để tạo đối tượng Sort dựa trên tham số
+                                           // sortParam.
+
+        Pageable pageable = PageRequest.of(page - 1, perPage, sort); // Tạo đối tượng Pageable với số trang, số lượng
+                                                                     // bản
+        // ghi trên mỗi trang và đối tượng Sort.
+
+        return userCatalogueRepository.findAll(pageable);
+    }
 
     @Override
     @Transactional // Annotation này đánh dấu phương thức là một giao dịch (transactional). Nó đảm

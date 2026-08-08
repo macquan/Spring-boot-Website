@@ -15,7 +15,7 @@ import PMQ.local.SpringBootProject.modules.users.repositories.UserRepository;
 import PMQ.local.SpringBootProject.resources.APIResource;
 
 @RestController
-@RequestMapping("/v1")
+@RequestMapping("/api/v1")
 public class UserController {
         // Đây là một route để lấy thông tin người dùng hiện tại. Trong thực tế, bạn sẽ
         // cần xác thực người dùng và lấy thông tin từ token hoặc session thay vì sử
