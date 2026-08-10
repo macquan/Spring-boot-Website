@@ -11,7 +11,8 @@ public class FilterParameters {
         return parameters.containsKey("keyword") ? parameters.get("keyword")[0] : null;
     }
 
-    // Phân loại theo các filter đơn giản
+    // Phân loại theo các filter đơn giản (where clause) - các filter không chứa các
+    // từ khóa đặc biệt như "[", "keyword", "page", "per_page", "sort"
     public static Map<String, String> filterSimple(Map<String, String[]> parameters) {
         // Lọc các tham số không chứa các từ khóa đặc biệt như "[", "keyword", "page",
         // "per_page", "sort" sau đó chuyển đổi chúng thành một Map<String, String> mới.

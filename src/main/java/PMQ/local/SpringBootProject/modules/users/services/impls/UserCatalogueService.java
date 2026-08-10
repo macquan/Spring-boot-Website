@@ -1,5 +1,6 @@
 package PMQ.local.SpringBootProject.modules.users.services.impls;
 
+import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -9,6 +10,7 @@ import org.springframework.data.domain.Page; // Dùng để làm việc với c�
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +21,7 @@ import PMQ.local.SpringBootProject.modules.users.entities.UserCatalogue;
 import PMQ.local.SpringBootProject.modules.users.repositories.UserCatalogueRepository;
 import PMQ.local.SpringBootProject.modules.users.services.interfaces.UserCatalogueServiceInterface;
 import PMQ.local.SpringBootProject.services.BaseService;
+import PMQ.local.SpringBootProject.specifications.BaseSpecification;
 import jakarta.persistence.EntityNotFoundException;
 
 @Service // Annotation này đánh dấu lớp là một Service trong Spring, cho phép Spring tự
@@ -29,6 +32,27 @@ public class UserCatalogueService extends BaseService implements UserCatalogueSe
 
     @Autowired
     private UserCatalogueRepository userCatalogueRepository;
+
+    @Override
+    public List<UserCatalogue> getAll(Map<String, String[]> parameters) {
+
+        String sortParam = parameters.containsKey("sort") ? parameters.get("sort")[0] : null;
+        Sort sort = createSort(sortParam);
+
+        String keyword = FilterParameters.filterKeyword(parameters);
+        Map<String, String> filterSimple = FilterParameters.filterSimple(parameters);
+        Map<String, Map<String, String>> filterComplex = FilterParameters.filterComplex(parameters);
+
+        Specification<UserCatalogue> specs = Specification
+                .where(BaseSpecification.<UserCatalogue>keyword(keyword, "name")) // Tạo Specification dựa trên từ khóa
+                                                                                  // và các trường dữ liệu.
+                .and(BaseSpecification.<UserCatalogue>whereSpec(filterSimple))
+                .and(BaseSpecification.<UserCatalogue>complexWhereSpec(filterComplex)); // Tạo Specification dựa trên
+                                                                                        // các bộ lọc
+                                                                                        // phức tạp.
+
+        return userCatalogueRepository.findAll(specs, sort);
+    }
 
     @Override
     public Page<UserCatalogue> paginate(Map<String, String[]> parameters) {
@@ -42,15 +66,23 @@ public class UserCatalogueService extends BaseService implements UserCatalogueSe
         Map<String, String> filterSimple = FilterParameters.filterSimple(parameters);
         Map<String, Map<String, String>> filterComplex = FilterParameters.filterComplex(parameters);
 
-        logger.info("Keyword: {}", keyword);
-        logger.info("Filter Simple: {}", filterSimple);
-        logger.info("Filter Complex: {}", filterComplex);
+        // logger.info("Keyword: {}", keyword);
+        // logger.info("Filter Simple: {}", filterSimple);
+        // logger.info("Filter Complex: {}", filterComplex);
+
+        Specification<UserCatalogue> specs = Specification
+                .where(BaseSpecification.<UserCatalogue>keyword(keyword, "name")) // Tạo Specification dựa trên từ khóa
+                                                                                  // và các trường dữ liệu.
+                .and(BaseSpecification.<UserCatalogue>whereSpec(filterSimple))
+                .and(BaseSpecification.<UserCatalogue>complexWhereSpec(filterComplex)); // Tạo Specification dựa trên
+                                                                                        // các bộ lọc
+                                                                                        // phức tạp.
 
         Pageable pageable = PageRequest.of(page - 1, perPage, sort); // Tạo đối tượng Pageable với số trang, số lượng
                                                                      // bản
         // ghi trên mỗi trang và đối tượng Sort.
 
-        return userCatalogueRepository.findAll(pageable);
+        return userCatalogueRepository.findAll(specs, pageable);
     }
 
     @Override

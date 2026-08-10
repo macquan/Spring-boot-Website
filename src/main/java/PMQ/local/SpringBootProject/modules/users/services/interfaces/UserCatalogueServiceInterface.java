@@ -1,5 +1,6 @@
 package PMQ.local.SpringBootProject.modules.users.services.interfaces;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.data.domain.Page;
@@ -14,5 +15,8 @@ public interface UserCatalogueServiceInterface {
 
     UserCatalogue update(Long id, UpdateRequest request);
 
-    public Page<UserCatalogue> paginate(Map<String, String[]> parameters);
+    List<UserCatalogue> getAll(Map<String, String[]> parameters);
+
+    Page<UserCatalogue> paginate(Map<String, String[]> parameters);
+
 }
