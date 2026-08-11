@@ -18,6 +18,7 @@ import PMQ.local.SpringBootProject.helpers.FilterParameters;
 import PMQ.local.SpringBootProject.modules.users.dtos.requests.UserCatalogue.StoreRequest;
 import PMQ.local.SpringBootProject.modules.users.dtos.requests.UserCatalogue.UpdateRequest;
 import PMQ.local.SpringBootProject.modules.users.entities.UserCatalogue;
+import PMQ.local.SpringBootProject.modules.users.mappers.UserCatalogueMapper;
 import PMQ.local.SpringBootProject.modules.users.repositories.UserCatalogueRepository;
 import PMQ.local.SpringBootProject.modules.users.services.interfaces.UserCatalogueServiceInterface;
 import PMQ.local.SpringBootProject.services.BaseService;
@@ -32,6 +33,12 @@ public class UserCatalogueService extends BaseService implements UserCatalogueSe
 
     @Autowired
     private UserCatalogueRepository userCatalogueRepository;
+
+    private final UserCatalogueMapper userCatalogueMapper;
+
+    public UserCatalogueService(UserCatalogueMapper userCatalogueMapper) {
+        this.userCatalogueMapper = userCatalogueMapper;
+    }
 
     @Override
     public List<UserCatalogue> getAll(Map<String, String[]> parameters) {
@@ -93,10 +100,7 @@ public class UserCatalogueService extends BaseService implements UserCatalogueSe
     public UserCatalogue create(StoreRequest request) {
 
         try {
-            UserCatalogue payload = UserCatalogue.builder()
-                    .name(request.getName())
-                    .publish(request.getPublish())
-                    .build();
+            UserCatalogue payload = userCatalogueMapper.toEntity(request);
 
             return userCatalogueRepository.save(payload);
         } catch (Exception e) {
@@ -112,12 +116,9 @@ public class UserCatalogueService extends BaseService implements UserCatalogueSe
         UserCatalogue userCatalogue = userCatalogueRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("User catalogue not found with id: " + id));
 
-        UserCatalogue payload = userCatalogue.toBuilder()
-                .name(request.getName())
-                .publish(request.getPublish())
-                .build();
+        userCatalogueMapper.updateEntityFromRequest(request, userCatalogue);
 
-        return userCatalogueRepository.save(payload);
+        return userCatalogueRepository.save(userCatalogue);
     }
 
 }

@@ -22,6 +22,7 @@ import PMQ.local.SpringBootProject.modules.users.dtos.requests.UserCatalogue.Sto
 import PMQ.local.SpringBootProject.modules.users.dtos.requests.UserCatalogue.UpdateRequest;
 import PMQ.local.SpringBootProject.modules.users.dtos.resources.UserCatalogueResource;
 import PMQ.local.SpringBootProject.modules.users.entities.UserCatalogue;
+import PMQ.local.SpringBootProject.modules.users.mappers.UserCatalogueMapper;
 import PMQ.local.SpringBootProject.modules.users.services.interfaces.UserCatalogueServiceInterface;
 import PMQ.local.SpringBootProject.resources.APIResource;
 import jakarta.persistence.EntityNotFoundException;
@@ -38,23 +39,21 @@ public class UserCatalogueController {
 
         private final UserCatalogueServiceInterface userCatalogueService;
 
-        public UserCatalogueController(UserCatalogueServiceInterface userCatalogueService) {
+        private final UserCatalogueMapper userCatalogueMapper;
+
+        public UserCatalogueController(UserCatalogueServiceInterface userCatalogueService,
+                        UserCatalogueMapper userCatalogueMapper) {
                 this.userCatalogueService = userCatalogueService;
+                this.userCatalogueMapper = userCatalogueMapper;
         }
 
-        @GetMapping("/user_catalogues/all")
+        @GetMapping("/user_catalogues/list")
         public ResponseEntity<?> list(HttpServletRequest request) {
                 Map<String, String[]> parameters = request.getParameterMap();
 
                 List<UserCatalogue> userCatalogues = userCatalogueService.getAll(parameters);
 
-                List<UserCatalogueResource> userCatalogueResources = userCatalogues.stream()
-                                .map(userCatalogue -> UserCatalogueResource.builder()
-                                                .id(userCatalogue.getId())
-                                                .name(userCatalogue.getName())
-                                                .publish(userCatalogue.getPublish())
-                                                .build())
-                                .collect(Collectors.toList());
+                List<UserCatalogueResource> userCatalogueResources = userCatalogueMapper.toList(userCatalogues);
 
                 APIResource<List<UserCatalogueResource>> response = APIResource.ok(userCatalogueResources,
                                 "User catalogues retrieved successfully");
@@ -70,12 +69,7 @@ public class UserCatalogueController {
 
                 Page<UserCatalogue> userCatalogues = userCatalogueService.paginate(parameters);
 
-                Page<UserCatalogueResource> userCatalogueResources = userCatalogues
-                                .map(userCatalogue -> UserCatalogueResource.builder()
-                                                .id(userCatalogue.getId())
-                                                .name(userCatalogue.getName())
-                                                .publish(userCatalogue.getPublish())
-                                                .build());
+                Page<UserCatalogueResource> userCatalogueResources = userCatalogueMapper.toResourcePage(userCatalogues);
 
                 APIResource<Page<UserCatalogueResource>> response = APIResource.ok(userCatalogueResources,
                                 "User catalogues retrieved successfully");
@@ -88,11 +82,7 @@ public class UserCatalogueController {
 
                 UserCatalogue userCatalogue = userCatalogueService.create(request);
 
-                UserCatalogueResource userCatalogueResource = UserCatalogueResource.builder()
-                                .id(userCatalogue.getId())
-                                .name(userCatalogue.getName())
-                                .publish(userCatalogue.getPublish())
-                                .build();
+                UserCatalogueResource userCatalogueResource = userCatalogueMapper.toResource(userCatalogue);
 
                 APIResource<UserCatalogueResource> response = APIResource.ok(userCatalogueResource,
                                 "User catalogue created successfully");
@@ -107,11 +97,7 @@ public class UserCatalogueController {
                 try {
 
                         UserCatalogue userCatalogue = userCatalogueService.update(id, request);
-                        UserCatalogueResource userCatalogueResource = UserCatalogueResource.builder()
-                                        .id(userCatalogue.getId())
-                                        .name(userCatalogue.getName())
-                                        .publish(userCatalogue.getPublish())
-                                        .build();
+                        UserCatalogueResource userCatalogueResource = userCatalogueMapper.toResource(userCatalogue);
 
                         APIResource<UserCatalogueResource> response = APIResource.ok(userCatalogueResource,
                                         "User catalogue updated successfully");
