@@ -2,14 +2,15 @@ package PMQ.local.SpringBootProject.modules.users.controllers;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,6 +24,7 @@ import PMQ.local.SpringBootProject.modules.users.dtos.requests.UserCatalogue.Upd
 import PMQ.local.SpringBootProject.modules.users.dtos.resources.UserCatalogueResource;
 import PMQ.local.SpringBootProject.modules.users.entities.UserCatalogue;
 import PMQ.local.SpringBootProject.modules.users.mappers.UserCatalogueMapper;
+import PMQ.local.SpringBootProject.modules.users.repositories.UserCatalogueRepository;
 import PMQ.local.SpringBootProject.modules.users.services.interfaces.UserCatalogueServiceInterface;
 import PMQ.local.SpringBootProject.resources.APIResource;
 import jakarta.persistence.EntityNotFoundException;
@@ -40,6 +42,9 @@ public class UserCatalogueController {
         private final UserCatalogueServiceInterface userCatalogueService;
 
         private final UserCatalogueMapper userCatalogueMapper;
+
+        @Autowired
+        private UserCatalogueRepository userCatalogueRepository;
 
         public UserCatalogueController(UserCatalogueServiceInterface userCatalogueService,
                         UserCatalogueMapper userCatalogueMapper) {
@@ -80,15 +85,24 @@ public class UserCatalogueController {
         @PostMapping("user_catalogues")
         public ResponseEntity<?> store(@Valid @RequestBody StoreRequest request) {
 
-                UserCatalogue userCatalogue = userCatalogueService.create(request);
+                try {
+                        logger.info("Method Running...!");
+                        UserCatalogue userCatalogue = userCatalogueService.create(request);
 
-                UserCatalogueResource userCatalogueResource = userCatalogueMapper.toResource(userCatalogue);
+                        UserCatalogueResource userCatalogueResource = userCatalogueMapper.toResource(userCatalogue);
 
-                APIResource<UserCatalogueResource> response = APIResource.ok(userCatalogueResource,
-                                "User catalogue created successfully");
+                        APIResource<UserCatalogueResource> response = APIResource.ok(userCatalogueResource,
+                                        "User catalogue created successfully");
 
-                logger.info("Method Running...!");
-                return ResponseEntity.ok(response);
+                        return ResponseEntity.ok(response);
+
+                } catch (Exception e) {
+                        String message = "An unexpected error occurred in the store operation: " + e.getMessage();
+                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                        .body(APIResource.error("INTERNAL_SERVER_ERROR", message,
+                                                        HttpStatus.INTERNAL_SERVER_ERROR));
+                }
+
         }
 
         @PutMapping("user_catalogues/{id}")
@@ -115,5 +129,56 @@ public class UserCatalogueController {
                                                         HttpStatus.INTERNAL_SERVER_ERROR));
                 }
 
+        }
+
+        @GetMapping("user_catalogues/{id}")
+        public ResponseEntity<?> show(@PathVariable Long id) {
+                UserCatalogue userCatalogue = userCatalogueRepository.findById(id)
+                                .orElseThrow(() -> new RuntimeException("User catalogue not found"));
+
+                UserCatalogueResource userCatalogueResource = userCatalogueMapper.toResource(userCatalogue);
+
+                APIResource<UserCatalogueResource> response = APIResource.ok(userCatalogueResource,
+                                "User catalogue retrieved successfully");
+
+                return ResponseEntity.ok(response);
+        }
+
+        @DeleteMapping("user_catalogues/{id}")
+        public ResponseEntity<?> delete(@PathVariable Long id) {
+
+                try {
+                        userCatalogueService.delete(id);
+                        return ResponseEntity.ok(APIResource.message("Deleted successfully", HttpStatus.OK));
+                } catch (EntityNotFoundException e) {
+                        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                        .body(APIResource.error("NOT_FOUND", e.getMessage(), HttpStatus.NOT_FOUND));
+                } catch (Exception e) {
+                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                        .body(APIResource.error("INTERNAL_SERVER_ERROR",
+                                                        "An unexpected error occurred in the delete operation",
+                                                        HttpStatus.INTERNAL_SERVER_ERROR));
+                }
+        }
+
+        @DeleteMapping("/user_catalogues")
+        public ResponseEntity<?> deleteMany(@RequestBody List<Long> ids) {
+                try {
+
+                        logger.info("Deleting user catalogues with IDs: {}", ids);
+                        userCatalogueService.deleteMultipleEntity(ids);
+                        return ResponseEntity.ok(APIResource.message("Deleted successfully",
+                                        HttpStatus.OK));
+
+                } catch (RuntimeException e) {
+                        String message = "An unexpected error occurred in the delete many operation: " + e.getMessage();
+                        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                        .body(APIResource.error("NOT_FOUND", message, HttpStatus.NOT_FOUND));
+                } catch (Exception e) {
+                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                        .body(APIResource.error("INTERNAL_SERVER_ERROR",
+                                                        "An unexpected error occurred in the delete many operation: ",
+                                                        HttpStatus.INTERNAL_SERVER_ERROR));
+                }
         }
 }
