@@ -16,7 +16,6 @@ import PMQ.local.SpringBootProject.modules.users.entities.User;
 import PMQ.local.SpringBootProject.modules.users.repositories.UserRepository;
 import PMQ.local.SpringBootProject.modules.users.services.interfaces.UserServiceInterface;
 import PMQ.local.SpringBootProject.resources.APIResource;
-import PMQ.local.SpringBootProject.services.BaseService;
 import PMQ.local.SpringBootProject.services.JwtService;
 
 @Service
