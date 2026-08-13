@@ -21,7 +21,8 @@ import jakarta.transaction.Transactional;
 
 @Service
 public abstract class BaseService<T, M extends BaseMapper<T, ?, C, U>, C, U, R extends JpaRepository<T, Long> & JpaSpecificationExecutor<T>> {
-
+    // T: Entity type
+    // R: Repository type
     protected abstract String[] getSearchFields();
 
     protected abstract R getRepository();
