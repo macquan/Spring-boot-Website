@@ -1,9 +1,6 @@
 package PMQ.local.SpringBootProject.modules.users.mappers;
 
-import java.util.List;
-
 import org.mapstruct.Mapper;
-import org.springframework.data.domain.Page;
 
 import PMQ.local.SpringBootProject.mappers.BaseMapper;
 import PMQ.local.SpringBootProject.modules.users.dtos.requests.UserCatalogue.StoreRequest;

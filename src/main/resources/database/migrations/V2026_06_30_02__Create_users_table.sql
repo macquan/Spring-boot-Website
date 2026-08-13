@@ -12,4 +12,5 @@ CREATE TABLE users(
 
     CONSTRAINT fk_user_catalogue_id FOREIGN KEY (user_catalogue_id) REFERENCES user_catalogues(id)
     ON DELETE CASCADE
+    -- ON DELETE CASCADE: Khi một bản ghi trong bảng cha (user_catalogues) bị xóa, tất cả các bản ghi liên quan trong bảng con (users) cũng sẽ bị xóa tự động.
 );

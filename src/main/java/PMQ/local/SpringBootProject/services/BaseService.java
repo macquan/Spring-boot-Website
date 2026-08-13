@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 
 import PMQ.local.SpringBootProject.helpers.FilterParameters;
 import PMQ.local.SpringBootProject.mappers.BaseMapper;
-import PMQ.local.SpringBootProject.modules.users.entities.UserCatalogue;
 import PMQ.local.SpringBootProject.specifications.BaseSpecification;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;

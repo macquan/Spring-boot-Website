@@ -16,8 +16,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import PMQ.local.SpringBootProject.mappers.BaseMapper;
-import PMQ.local.SpringBootProject.modules.users.dtos.resources.UserCatalogueResource;
-import PMQ.local.SpringBootProject.modules.users.entities.UserCatalogue;
 import PMQ.local.SpringBootProject.modules.users.services.interfaces.BaseServiceInterface;
 import PMQ.local.SpringBootProject.resources.APIResource;
 import jakarta.persistence.EntityNotFoundException;
