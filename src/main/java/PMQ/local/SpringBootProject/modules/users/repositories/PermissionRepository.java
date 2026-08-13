@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import PMQ.local.SpringBootProject.modules.users.entities.Permission;
 
-@Repository
+@Repository("permissionRepository")
 public interface PermissionRepository
         extends JpaRepository<Permission, Long>, JpaSpecificationExecutor<Permission> {
     // Optional<Permission> findById(Long id);

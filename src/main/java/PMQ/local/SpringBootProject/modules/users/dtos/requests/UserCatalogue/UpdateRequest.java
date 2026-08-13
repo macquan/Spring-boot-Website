@@ -1,5 +1,7 @@
 package PMQ.local.SpringBootProject.modules.users.dtos.requests.UserCatalogue;
 
+import java.util.List;
+
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -17,5 +19,11 @@ public class UpdateRequest {
     @Max(value = 2, message = "Publish status must be less than or equal to 2") // 0: Unpublished, 1: Published, 2:
                                                                                 // Archived
     private Integer publish;
+
+    @NotNull(message = "Permissions for user catalogue are required")
+    private List<Long> permissions;
+
+    @NotNull(message = "Users for user catalogue are required")
+    private List<Long> users;
 
 }

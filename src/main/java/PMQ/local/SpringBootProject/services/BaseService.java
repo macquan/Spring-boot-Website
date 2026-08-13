@@ -1,8 +1,16 @@
 package PMQ.local.SpringBootProject.services;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,7 +30,18 @@ import jakarta.transaction.Transactional;
 public abstract class BaseService<T, M extends BaseMapper<T, ?, C, U>, C, U, R extends JpaRepository<T, Long> & JpaSpecificationExecutor<T>> {
     // T: Entity type
     // R: Repository type
+
+    private static final Logger logger = LoggerFactory.getLogger(BaseService.class);
+
+    @Autowired
+    private ApplicationContext applicationContext;
+
     protected abstract String[] getSearchFields();
+
+    protected String[] getRelations() { // Không phải là abstract method, vì không phải tất cả các service đều có quan
+                                        // hệ. Nếu một service không có quan hệ, nó có thể trả về một mảng rỗng.
+        return new String[0];
+    }
 
     protected abstract R getRepository();
 
@@ -52,23 +71,65 @@ public abstract class BaseService<T, M extends BaseMapper<T, ?, C, U>, C, U, R e
         return getRepository().findAll(specs, pageable);
     }
 
+    private void handleManyToManyRelation(T entity, Object request) {
+        String[] relations = getRelations();
+        if (relations != null && relations.length > 0) {
+            for (String relation : relations) {
+                try {
+
+                    Field requestField = request.getClass().getDeclaredField(relation);
+                    requestField.setAccessible(true);
+
+                    @SuppressWarnings("unchecked")
+                    List<Long> ids = (List<Long>) requestField.get(request);
+                    if (ids != null && !ids.isEmpty()) {
+                        Field entityField = entity.getClass().getDeclaredField(relation);
+                        entityField.setAccessible(true);
+
+                        ParameterizedType setType = (ParameterizedType) entityField.getGenericType();
+                        Class<?> entityClass = (Class<?>) setType.getActualTypeArguments()[0];
+
+                        String repositoryName = entityClass.getSimpleName() + "Repository";
+                        repositoryName = Character.toLowerCase(repositoryName.charAt(0)) + repositoryName.substring(1);
+
+                        @SuppressWarnings("unchecked")
+                        JpaRepository<T, Long> repository = (JpaRepository<T, Long>) applicationContext
+                                .getBean(repositoryName);
+                        List<T> entities = repository.findAllById(ids);
+                        Set<T> entitySet = new HashSet<>(entities);
+                        entityField.set(entity, entitySet);
+                    }
+
+                } catch (NoSuchFieldException | ClassCastException | IllegalAccessException e) {
+                    throw new RuntimeException(
+                            "Error handling many-to-many relation: " + relation + ": " + e.getMessage(), e);
+                }
+            }
+        }
+    }
+
     @Transactional
     public T create(C request) {
         T payload = getMapper().toEntity(request); // Gọi phương thức toEntity của mapper để chuyển đổi
                                                    // StoreRequest thành đối tượng UserCatalogue.
-        return getRepository().save(payload); // Gọi phương thức save của repository để lưu đối tượng UserCatalogue
-                                              // vào cơ sở dữ liệu.
+        T entity = getRepository().save(payload); // Gọi phương thức save của repository để lưu đối tượng UserCatalogue
+        handleManyToManyRelation(entity, request); // Gọi phương thức handleManyToManyRelationships để xử lý
+                                                   // các mối quan hệ nhiều-nhiều (nếu có).
+
+        return entity; // Trả về đối tượng UserCatalogue đã được lưu
     }
 
     @Transactional
     public T update(Long id, U request) {
-
         T entity = getRepository().findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Entity not found with id: " + id));
-
         getMapper().updateEntityFromRequest(request, entity);
+        T entityUpdate = getRepository().save(entity); // Gọi phương thức save của repository để lưu đối tượng
+                                                       // UserCatalogue
+        handleManyToManyRelation(entityUpdate, request); // Gọi phương thức handleManyToManyRelationships để xử lý các
+                                                         // mối quan hệ nhiều-nhiều (nếu có).
 
-        return getRepository().save(entity);
+        return getRepository().save(entityUpdate);
     }
 
     @Transactional

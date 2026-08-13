@@ -8,6 +8,8 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.springframework.data.domain.Page;
 
+import PMQ.local.SpringBootProject.annotations.BaseMapperAnnotation;
+
 // Entity: E, Resource: R, CreateRequest: C, UpdateRequest: U
 public interface BaseMapper<E, R, C, U> {
     // Chuyển đổi từ Entity sang Resource
@@ -24,9 +26,7 @@ public interface BaseMapper<E, R, C, U> {
     // chúng ta chỉ định rằng khi ánh xạ từ UpdateRequest sang Entity, nếu một thuộc
     // tính trong UpdateRequest có giá trị null, thì không nên ghi đè giá trị tương
     // ứng trong Entity.
-    @Mapping(target = "id", ignore = true) // Bỏ qua trường id khi ánh xạ từ CreateRequest sang Entity
-    @Mapping(target = "createdAt", ignore = true) // Bỏ qua trường createdAt khi ánh xạ từ CreateRequest sang Entity
-    @Mapping(target = "updatedAt", ignore = true) // Bỏ qua trường updated
+    @BaseMapperAnnotation
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     E toEntity(C createRequest);
 
@@ -36,9 +36,7 @@ public interface BaseMapper<E, R, C, U> {
     // ứng trong Entity. Phương thức này cũng sử dụng @MappingTarget để chỉ định
     // rằng chúng ta đang cập nhật một thực thể hiện có thay vì tạo một thực thể
     // mới.
-    @Mapping(target = "id", ignore = true) // Bỏ qua trường id khi ánh xạ từ UpdateRequest sang Entity
-    @Mapping(target = "createdAt", ignore = true) // Bỏ qua trường createdAt khi ánh xạ từ UpdateRequest sang Entity
-    @Mapping(target = "updatedAt", ignore = true) // Bỏ qua trường updatedAt khi ánh xạ từ UpdateRequest sang Entity
+    @BaseMapperAnnotation
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEntityFromRequest(U updateRequest, @MappingTarget E entity);
 }
