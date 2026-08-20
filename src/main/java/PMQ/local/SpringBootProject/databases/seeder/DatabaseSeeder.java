@@ -36,7 +36,13 @@ public class DatabaseSeeder implements CommandLineRunner {
         if (isTableEmpty()) {
             // Seed the database with initial data
             String passwordEncode = passwordEncoder.encode("password");
-            User user = new User("John Doe", "john.doe@example.com", passwordEncode, 1L, "123-456-7890");
+            User user = User.builder()
+                    .name("John Doe")
+                    .email("john.doe@example.com")
+                    .password(passwordEncode)
+                    .phone("123-456-7890")
+                    .address("Ecopark")
+                    .build();
             userRepository.save(user);
             logger.info("Seeding user data.");
         }

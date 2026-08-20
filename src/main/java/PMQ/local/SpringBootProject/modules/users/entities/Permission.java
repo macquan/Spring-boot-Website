@@ -1,17 +1,21 @@
 package PMQ.local.SpringBootProject.modules.users.entities;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -19,8 +23,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 @Entity
-@Builder(toBuilder = true) // Annotation này cho phép sử dụng Builder Pattern để tạo đối tượng
-                           // UserCatalogue một cách linh hoạt và dễ đọc hơn.
 @Table(name = "permissions")
 public class Permission {
 
@@ -40,6 +42,9 @@ public class Permission {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "user_id")
+    private Long userId;
+
     @PrePersist // set dữ liệu cho lần đầu tiên
     protected void onCreated() {
         createdAt = LocalDateTime.now();
@@ -49,4 +54,14 @@ public class Permission {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
+    @ManyToMany(mappedBy = "permissions") // mappedBy = "permissions": Điều này chỉ ra rằng mối quan hệ nhiều-nhiều giữa
+                                          // Permission và Role được ánh xạ
+    @JsonBackReference // quan hệ con
+    private Set<UserCatalogue> userCatalogues = new HashSet<>(); // Set<UserCatalogue>: Sử dụng Set để đảm bảo rằng
+                                                                 // không có phần tử trùng lặp trong tập hợp các
+                                                                 // UserCatalogue liên quan đến Permission. HashSet là
+                                                                 // một triển khai phổ biến của Set, cung cấp hiệu suất
+                                                                 // tốt cho các thao tác thêm, xóa và kiểm tra sự tồn
+                                                                 // tại của phần tử.
 }

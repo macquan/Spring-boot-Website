@@ -47,7 +47,7 @@ public class UserService implements UserServiceInterface {
             }
 
             UserResource userResource = new UserResource(user.getId(), user.getEmail(), user.getName(),
-                    user.getPhone());
+                    user.getPhone(), user.getUserCatalogues());
             String token = jwtService.generateToken(user.getId(), user.getEmail(), defaultExpiration);
 
             String refreshToken = jwtService.generateRefreshToken(user.getId(), user.getEmail());

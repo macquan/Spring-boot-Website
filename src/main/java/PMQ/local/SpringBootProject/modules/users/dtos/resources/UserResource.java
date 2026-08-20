@@ -1,7 +1,10 @@
 package PMQ.local.SpringBootProject.modules.users.dtos.resources;
 
+import java.util.Set;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 
+import PMQ.local.SpringBootProject.modules.users.entities.UserCatalogue;
 import lombok.Builder;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -15,23 +18,6 @@ public class UserResource {
     private final String email;
     private final String name;
     private final String phone;
-
-    // public UserResource(Long id, String email, String name) {
-    // this.id = id;
-    // this.email = email;
-    // this.name = name;
-    // }
-
-    // public Long getId() {
-    // return id;
-    // }
-
-    // public String getEmail() {
-    // return email;
-    // }
-
-    // public String getName() {
-    // return name;
-    // }
+    private final Set<UserCatalogue> userCatalogues;
 
 }

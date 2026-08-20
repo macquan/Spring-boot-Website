@@ -1,6 +1,7 @@
 package PMQ.local.SpringBootProject.controllers;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
@@ -22,6 +23,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 
 import PMQ.local.SpringBootProject.mappers.BaseMapper;
 import PMQ.local.SpringBootProject.modules.users.services.interfaces.BaseServiceInterface;
+import jakarta.servlet.http.HttpServletRequest;
 
 public abstract class BaseControllerTest<E, R, C, U, Repo extends JpaRepository<E, Long> & JpaSpecificationExecutor<E>, M extends BaseMapper<E, R, C, U>, S extends BaseServiceInterface<E, C, U>> {
 
@@ -73,7 +75,7 @@ public abstract class BaseControllerTest<E, R, C, U, Repo extends JpaRepository<
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Map<String, String[]>> captor = ArgumentCaptor.forClass(Map.class);
 
-        when(service.getAll(captor.capture())).thenReturn(mockEntities);
+        when(service.getAll(captor.capture(), any(HttpServletRequest.class))).thenReturn(mockEntities);
         when(mapper.toList(mockEntities)).thenReturn(mockResources);
 
         mockMvc.perform(get(getApiPath() + "/list")
@@ -87,7 +89,7 @@ public abstract class BaseControllerTest<E, R, C, U, Repo extends JpaRepository<
                 .andExpect(jsonPath("$.errors").doesNotExist())
                 .andExpect(jsonPath("$.error").doesNotExist());
 
-        verify(service).getAll(captor.getValue());
+        verify(service).getAll(captor.getValue(), any(HttpServletRequest.class));
         verify(mapper).toList(mockEntities);
 
     }
@@ -103,7 +105,7 @@ public abstract class BaseControllerTest<E, R, C, U, Repo extends JpaRepository<
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Map<String, String[]>> captor = ArgumentCaptor.forClass(Map.class);
 
-        when(service.getAll(captor.capture())).thenReturn(mockFilteredEntities);
+        when(service.getAll(captor.capture(), any(HttpServletRequest.class))).thenReturn(mockFilteredEntities);
         when(mapper.toList(mockFilteredEntities)).thenReturn(mockFilteredResources);
 
         ResultActions actions = mockMvc.perform(get(getApiPath() + "/list")
@@ -121,7 +123,7 @@ public abstract class BaseControllerTest<E, R, C, U, Repo extends JpaRepository<
                 .andExpect(jsonPath("$.errors").doesNotExist())
                 .andExpect(jsonPath("$.error").doesNotExist());
 
-        verify(service).getAll(captor.getValue());
+        verify(service).getAll(captor.getValue(), any(HttpServletRequest.class));
         verify(mapper).toList(mockFilteredEntities);
 
         Map<String, String[]> capturedParams = captor.getValue();
@@ -141,7 +143,7 @@ public abstract class BaseControllerTest<E, R, C, U, Repo extends JpaRepository<
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Map<String, String[]>> captor = ArgumentCaptor.forClass(Map.class);
 
-        when(service.getAll(captor.capture())).thenReturn(mockFilteredEntities);
+        when(service.getAll(captor.capture(), any(HttpServletRequest.class))).thenReturn(mockFilteredEntities);
         when(mapper.toList(mockFilteredEntities)).thenReturn(mockFilteredResources);
 
         MockHttpServletRequestBuilder requestBuilder = get(getApiPath() + "/list");
@@ -174,7 +176,7 @@ public abstract class BaseControllerTest<E, R, C, U, Repo extends JpaRepository<
             assertThat(capturedParams.get(key)).containsExactly(values);
         }
 
-        verify(service).getAll(captor.getValue());
+        verify(service).getAll(captor.getValue(), any(HttpServletRequest.class));
         verify(mapper).toList(mockFilteredEntities);
     }
 

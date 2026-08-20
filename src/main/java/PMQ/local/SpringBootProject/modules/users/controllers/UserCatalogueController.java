@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import PMQ.local.SpringBootProject.controllers.BaseController;
+import PMQ.local.SpringBootProject.enums.PermissionEnum;
 import PMQ.local.SpringBootProject.modules.users.dtos.requests.UserCatalogue.StoreRequest;
 import PMQ.local.SpringBootProject.modules.users.dtos.requests.UserCatalogue.UpdateRequest;
 import PMQ.local.SpringBootProject.modules.users.dtos.resources.UserCatalogueResource;
@@ -23,7 +24,7 @@ public class UserCatalogueController extends
         public UserCatalogueController(UserCatalogueServiceInterface service,
                         UserCatalogueMapper mapper, UserCatalogueRepository repo) {
 
-                super(service, mapper, repo);
+                super(service, mapper, repo, PermissionEnum.USER_CATALOGUE);
         }
 
 }

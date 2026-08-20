@@ -1,10 +1,9 @@
 package PMQ.local.SpringBootProject.modules.users.services.impls;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import PMQ.local.SpringBootProject.enums.PermissionEnum;
 import PMQ.local.SpringBootProject.modules.users.dtos.requests.Permission.StoreRequest;
 import PMQ.local.SpringBootProject.modules.users.dtos.requests.Permission.UpdateRequest;
 import PMQ.local.SpringBootProject.modules.users.entities.Permission;
@@ -41,6 +40,12 @@ public class PermissionService
     @Override
     protected PermissionMapper getMapper() {
         return PermissionMapper;
+    }
+
+    public boolean hasPermission(String requiredPermission, PermissionEnum module, String action) {
+        // Implementation for checking permission
+        String permission = module.getPrefix() + ":" + action;
+        return requiredPermission.equals(permission);
     }
 
 }

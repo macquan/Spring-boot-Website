@@ -2,6 +2,7 @@ package PMQ.local.SpringBootProject.services;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +25,7 @@ import PMQ.local.SpringBootProject.helpers.FilterParameters;
 import PMQ.local.SpringBootProject.mappers.BaseMapper;
 import PMQ.local.SpringBootProject.specifications.BaseSpecification;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 
 @Service
@@ -47,24 +49,43 @@ public abstract class BaseService<T, M extends BaseMapper<T, ?, C, U>, C, U, R e
 
     protected abstract M getMapper();
 
+    private Map<String, String[]> modifyParameters(HttpServletRequest request, Map<String, String[]> parameters) {
+        Map<String, String[]> modifiedParameters = new HashMap<>(parameters);
+        Object userIdAttribute = request.getAttribute("userId");
+        if (userIdAttribute != null) {
+            String userId = userIdAttribute.toString();
+            modifiedParameters.put("userId", new String[] { userId });
+        }
+
+        return modifiedParameters;
+    }
+
     protected JpaSpecificationExecutor<T> getSpecificationExecutor() {
         return (JpaSpecificationExecutor<T>) getRepository();
     }
 
-    public List<T> getAll(Map<String, String[]> parameters) {
-        Sort sort = parseSort(parameters); // Gọi phương thức parseSort để lấy thông tin sắp xếp từ các tham số.
-        Specification<T> specs = buildSpecification(parameters, getSearchFields()); // Gọi phương thức
-                                                                                    // buildSpecification để tạo
-                                                                                    // Specification dựa trên các tham
-                                                                                    // số và trường dữ liệu "name".
+    public List<T> getAll(Map<String, String[]> parameters, HttpServletRequest request) {
+        Map<String, String[]> modifiedParameters = modifyParameters(request, parameters); // Gọi phương thức
+                                                                                          // modifyParameters để thêm
+                                                                                          // thông tin userId vào các
+                                                                                          // tham số.
+        Sort sort = parseSort(modifiedParameters); // Gọi phương thức parseSort để lấy thông tin sắp xếp từ các tham số.
+        Specification<T> specs = buildSpecification(modifiedParameters, getSearchFields()); // Gọi phương thức
+                                                                                            // buildSpecification để
+                                                                                            // tạoSpecification dựa trên
+                                                                                            // các tham số và trường dữ
+                                                                                            // liệu "name".
         return getRepository().findAll(specs, sort); // Gọi phương thức findAll của repository để lấy danh sách tất cả
     }
 
-    public Page<T> paginate(Map<String, String[]> parameters) {
-        int page = parameters.containsKey("page") ? Integer.parseInt(parameters.get("page")[0]) : 1;
-        int perPage = parameters.containsKey("per_page") ? Integer.parseInt(parameters.get("per_page")[0]) : 20;
-        Sort sort = parseSort(parameters);
-        Specification<T> specs = buildSpecification(parameters, getSearchFields());
+    public Page<T> paginate(Map<String, String[]> parameters, HttpServletRequest request) {
+        Map<String, String[]> modifiedParameters = modifyParameters(request, parameters);
+        int page = modifiedParameters.containsKey("page") ? Integer.parseInt(modifiedParameters.get("page")[0]) : 1;
+        int perPage = modifiedParameters.containsKey("per_page")
+                ? Integer.parseInt(modifiedParameters.get("per_page")[0])
+                : 20;
+        Sort sort = parseSort(modifiedParameters);
+        Specification<T> specs = buildSpecification(modifiedParameters, getSearchFields());
 
         Pageable pageable = PageRequest.of(page - 1, perPage, sort); // Tạo đối tượngPageable với số trang, số lượng bản
                                                                      // ghi trên mỗi trang và đối tượng Sort.

@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import PMQ.local.SpringBootProject.controllers.BaseController;
+import PMQ.local.SpringBootProject.enums.PermissionEnum;
 import PMQ.local.SpringBootProject.modules.users.dtos.requests.Permission.StoreRequest;
 import PMQ.local.SpringBootProject.modules.users.dtos.requests.Permission.UpdateRequest;
 import PMQ.local.SpringBootProject.modules.users.dtos.resources.PermissionResource;
@@ -22,7 +23,7 @@ public class PermissionController
 
     public PermissionController(PermissionServiceInterface service,
             PermissionMapper mapper, PermissionRepository repo) {
-        super(service, mapper, repo);
+        super(service, mapper, repo, PermissionEnum.PERMISSION);
     }
 
 }

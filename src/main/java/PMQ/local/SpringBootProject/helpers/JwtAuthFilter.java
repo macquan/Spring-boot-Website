@@ -98,8 +98,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = customUserDetailsService.loadUserByUsername(userId);
 
-                // logger.info("userDetails: " + userDetails.getUsername());
-
                 final String emailFromToken = jwtService.getEmailFromJwt(jwt);
                 if (!emailFromToken.equals(userDetails.getUsername())) {
                     sendErrorResponse(response, request, HttpServletResponse.SC_UNAUTHORIZED,

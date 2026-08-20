@@ -1,16 +1,18 @@
-package PMQ.local.SpringBootProject.helpers;
+package PMQ.local.SpringBootProject.exceptions;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import PMQ.local.SpringBootProject.resources.APIResource;
 import PMQ.local.SpringBootProject.resources.ErrorResource;
 
 @ControllerAdvice
@@ -38,4 +40,11 @@ public class GlobalExceptionHandler {
         ErrorResource errorResource = new ErrorResource("Authentication failed", errors);
         return new ResponseEntity<>(errorResource, HttpStatus.UNAUTHORIZED);
     }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<?> handleAccessDeniedException(AccessDeniedException exception) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(APIResource.error("FORBIDDEN", "Access denied", HttpStatus.FORBIDDEN));
+    }
+
 }

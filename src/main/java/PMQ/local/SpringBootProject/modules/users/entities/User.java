@@ -1,21 +1,35 @@
 package PMQ.local.SpringBootProject.modules.users.entities;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 // Cứ mỗi table sẽ có một entity tương ứng, và mỗi entity sẽ có một repository tương ứng. Repository này sẽ được sử dụng để thực hiện các thao tác CRUD (Create, Read, Update, Delete) trên cơ sở dữ liệu. Trong trường hợp này, User là entity cho table users, cho phép bạn lưu trữ và truy xuất thông tin người dùng.
 
+@Builder // Tạo một builder cho lớp User, cho phép tạo các đối tượng User một cách linh
+         // hoạt và dễ đọc. toBuilder = true cho phép tạo một builder từ một đối tượng
+         // hiện có.
 @NoArgsConstructor // Tự động tạo constructor không tham số
 @AllArgsConstructor // Tự động tạo constructor không tham số và constructor với tất cả các tham số
 @Data // Tự động tạo các phương thức getter, setter, toString, equals và hashCode
@@ -27,8 +41,10 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "user_catalogue_id")
-    private Long userCatalogueId;
+    @Builder.Default
+    @ManyToMany(mappedBy = "users")
+    @JsonBackReference
+    private Set<UserCatalogue> userCatalogues = new HashSet<>();
 
     private String name;
     private String email;
@@ -61,83 +77,18 @@ public class User {
         this.id = id;
     }
 
-    public Long getUserCatalogueId() {
-        return userCatalogueId;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        User that = (User) o;
+        return Objects.equals(id, that.id);
     }
 
-    public void setUserCatalogueId(Long userCatalogueId) {
-        this.userCatalogueId = userCatalogueId;
-    }
-
-    // public String getName() {
-    // return name;
-    // }
-
-    // public void setName(String name) {
-    // this.name = name;
-    // }
-
-    // public String getEmail() {
-    // return email;
-    // }
-
-    // public void setEmail(String email) {
-    // this.email = email;
-    // }
-
-    // public String getPassword() {
-    // return password;
-    // }
-
-    // public void setPassword(String password) {
-    // this.password = password;
-    // }
-
-    // public String getPhone() {
-    // return phone;
-    // }
-
-    // public void setPhone(String phone) {
-    // this.phone = phone;
-    // }
-
-    // public String getImage() {
-    // return image;
-    // }
-
-    // public void setImage(String image) {
-    // this.image = image;
-    // }
-
-    // public String getAddress() {
-    // return address;
-    // }
-
-    // public void setAddress(String address) {
-    // this.address = address;
-    // }
-
-    // public LocalDateTime getCreatedAt() {
-    // return createdAt;
-    // }
-
-    // public LocalDateTime getUpdatedAt() {
-    // return updatedAt;
-    // }
-
-    // public User() {
-
-    // }
-
-    public User(String name,
-            String email,
-            String password,
-            Long userCatalogueId,
-            String phone) {
-        this.name = name;
-        this.email = email;
-        this.password = password;
-        this.userCatalogueId = userCatalogueId;
-        this.phone = phone;
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

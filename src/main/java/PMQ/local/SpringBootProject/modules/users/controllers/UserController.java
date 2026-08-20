@@ -1,5 +1,8 @@
 package PMQ.local.SpringBootProject.modules.users.controllers;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import PMQ.local.SpringBootProject.modules.users.dtos.resources.UserCatalogueResource;
 import PMQ.local.SpringBootProject.modules.users.dtos.resources.UserResource;
 import PMQ.local.SpringBootProject.modules.users.entities.User;
 import PMQ.local.SpringBootProject.modules.users.repositories.UserRepository;
@@ -23,13 +27,10 @@ public class UserController {
         @Autowired
         private UserRepository userRepository;
 
-        private static final Logger logger = LoggerFactory.getLogger(UserController.class);
-
         @GetMapping("/me")
         public ResponseEntity<?> me() {
                 // String email = "john.doe@example.com";
                 String email = SecurityContextHolder.getContext().getAuthentication().getName();
-                logger.info("Email from SecurityContextHolder: " + email);
 
                 User user = userRepository.findByEmail(email)
                                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -39,14 +40,11 @@ public class UserController {
                                 .email(user.getEmail())
                                 .name(user.getName())
                                 .phone(user.getPhone())
+                                .userCatalogues(user.getUserCatalogues())
                                 .build();
 
                 APIResource<UserResource> response = APIResource.ok(userResource,
                                 "Successfully retrieved user information");
-
-                // SuccessResource<UserResource> response = new SuccessResource<>(
-                // "Successfully retrieved user information",
-                // userResource);
 
                 return ResponseEntity.ok(response);
         }

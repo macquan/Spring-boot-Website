@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import PMQ.local.SpringBootProject.annotations.RequirePermission;
+import PMQ.local.SpringBootProject.enums.PermissionEnum;
 import PMQ.local.SpringBootProject.mappers.BaseMapper;
 import PMQ.local.SpringBootProject.modules.users.services.interfaces.BaseServiceInterface;
 import PMQ.local.SpringBootProject.resources.APIResource;
@@ -31,19 +33,26 @@ public abstract class BaseController<E, R, C, U, Rp extends JpaRepository<E, Lon
 
     protected final BaseServiceInterface<E, C, U> service;
     protected final BaseMapper<E, R, C, U> mapper;
-
     protected final Rp repo;
+    protected final PermissionEnum module;
 
-    public BaseController(BaseServiceInterface<E, C, U> service, BaseMapper<E, R, C, U> mapper, Rp repo) {
+    public BaseController(BaseServiceInterface<E, C, U> service, BaseMapper<E, R, C, U> mapper, Rp repo,
+            PermissionEnum module) {
         this.service = service;
         this.mapper = mapper;
         this.repo = repo;
+        this.module = module;
+    }
+
+    public PermissionEnum getModule() {
+        return module;
     }
 
     @GetMapping("/list")
+    @RequirePermission(action = "list", viewAll = "view_all")
     public ResponseEntity<?> list(HttpServletRequest request) {
         Map<String, String[]> parameters = request.getParameterMap();
-        List<E> entities = service.getAll(parameters);
+        List<E> entities = service.getAll(parameters, request);
         List<R> resources = mapper.toList(entities);
         APIResource<List<R>> response = APIResource.ok(resources,
                 "Entities retrieved successfully");
@@ -52,11 +61,10 @@ public abstract class BaseController<E, R, C, U, Rp extends JpaRepository<E, Lon
     }
 
     @GetMapping
-    // Get all user catalogues
+    @RequirePermission(action = "pagination", viewAll = "view_all")
     public ResponseEntity<?> pagination(HttpServletRequest request) {
-
         Map<String, String[]> parameters = request.getParameterMap();
-        Page<E> entities = service.paginate(parameters);
+        Page<E> entities = service.paginate(parameters, request);
         Page<R> resources = mapper.toResourcePage(entities);
         APIResource<Page<R>> response = APIResource.ok(resources,
                 "Entities retrieved successfully");
@@ -65,6 +73,7 @@ public abstract class BaseController<E, R, C, U, Rp extends JpaRepository<E, Lon
     }
 
     @PostMapping
+    // @RequirePermission(action = "store")
     public ResponseEntity<?> store(@Valid @RequestBody C request) {
 
         try {
@@ -85,6 +94,7 @@ public abstract class BaseController<E, R, C, U, Rp extends JpaRepository<E, Lon
     }
 
     @PutMapping("/{id}")
+    @RequirePermission(action = "update")
     public ResponseEntity<?> update(@PathVariable Long id, @Valid @RequestBody U request) {
 
         try {
@@ -108,6 +118,7 @@ public abstract class BaseController<E, R, C, U, Rp extends JpaRepository<E, Lon
     }
 
     @GetMapping("/{id}")
+    @RequirePermission(action = "show")
     public ResponseEntity<?> show(@PathVariable Long id) {
         E entity = repo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Entity not found"));
@@ -119,6 +130,7 @@ public abstract class BaseController<E, R, C, U, Rp extends JpaRepository<E, Lon
     }
 
     @DeleteMapping("/{id}")
+    @RequirePermission(action = "delete")
     public ResponseEntity<?> delete(@PathVariable Long id) {
         try {
             service.delete(id);
@@ -135,6 +147,7 @@ public abstract class BaseController<E, R, C, U, Rp extends JpaRepository<E, Lon
     }
 
     @DeleteMapping
+    @RequirePermission(action = "delete_many", viewAll = "view_all")
     public ResponseEntity<?> deleteMany(@RequestBody List<Long> ids) {
         try {
             service.deleteMultipleEntity(ids);

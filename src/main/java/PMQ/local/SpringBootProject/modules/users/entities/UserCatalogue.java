@@ -1,10 +1,16 @@
 package PMQ.local.SpringBootProject.modules.users.entities;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -34,13 +40,17 @@ public class UserCatalogue {
 
     private String name;
 
-    @ManyToMany
+    @Builder.Default
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_catalogue_permission", joinColumns = @JoinColumn(name = "user_catalogue_id"), inverseJoinColumns = @JoinColumn(name = "permission_id"))
-    private Set<Permission> permissions;
+    @JsonManagedReference // quan hệ cha
+    private Set<Permission> permissions = new HashSet<>();
 
-    @ManyToMany
+    @Builder.Default
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_catalogue_user", joinColumns = @JoinColumn(name = "user_catalogue_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
-    private Set<User> users;
+    @JsonManagedReference
+    private Set<User> users = new HashSet<>();
 
     @Column(name = "publish", nullable = false, columnDefinition = "TINYINT(1)") // // 0: Unpublished, 1: Published, 2:
                                                                                  // Archived
@@ -60,5 +70,20 @@ public class UserCatalogue {
     @PreUpdate // set dữ liệu cho lần update
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        UserCatalogue that = (UserCatalogue) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

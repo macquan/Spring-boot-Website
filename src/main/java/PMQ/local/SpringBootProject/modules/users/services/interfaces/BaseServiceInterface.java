@@ -5,6 +5,8 @@ import java.util.Map;
 
 import org.springframework.data.domain.Page;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 public interface BaseServiceInterface<E, C, U> {
     E create(C request);
 
@@ -14,7 +16,7 @@ public interface BaseServiceInterface<E, C, U> {
 
     Boolean deleteMultipleEntity(List<Long> ids);
 
-    List<E> getAll(Map<String, String[]> parameters);
+    List<E> getAll(Map<String, String[]> parameters, HttpServletRequest request);
 
-    Page<E> paginate(Map<String, String[]> parameters);
+    Page<E> paginate(Map<String, String[]> parameters, HttpServletRequest request);
 }
