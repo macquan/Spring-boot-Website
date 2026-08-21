@@ -5,7 +5,6 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.Column;
@@ -42,8 +41,9 @@ public class User {
     private Long id;
 
     @Builder.Default
-    @ManyToMany(mappedBy = "users")
-    @JsonBackReference
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "user_catalogue_user", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "user_catalogue_id"))
+    @JsonManagedReference
     private Set<UserCatalogue> userCatalogues = new HashSet<>();
 
     private String name;
@@ -58,6 +58,11 @@ public class User {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    // @PrePersist
+    // protected void hashPassword() {
+    // this.password = passwordEncoder.encode(this.password);
+    // }
 
     @PrePersist // set dữ liệu cho lần đầu tiên
     protected void onCreated() {

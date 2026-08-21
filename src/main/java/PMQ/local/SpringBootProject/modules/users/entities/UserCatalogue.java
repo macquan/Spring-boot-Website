@@ -47,9 +47,8 @@ public class UserCatalogue {
     private Set<Permission> permissions = new HashSet<>();
 
     @Builder.Default
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "user_catalogue_user", joinColumns = @JoinColumn(name = "user_catalogue_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
-    @JsonManagedReference
+    @ManyToMany(mappedBy = "userCatalogues")
+    @JsonBackReference
     private Set<User> users = new HashSet<>();
 
     @Column(name = "publish", nullable = false, columnDefinition = "TINYINT(1)") // // 0: Unpublished, 1: Published, 2:

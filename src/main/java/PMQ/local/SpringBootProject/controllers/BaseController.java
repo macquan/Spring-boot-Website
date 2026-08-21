@@ -49,7 +49,7 @@ public abstract class BaseController<E, R, C, U, Rp extends JpaRepository<E, Lon
     }
 
     @GetMapping("/list")
-    @RequirePermission(action = "list", viewAll = "view_all")
+    // @RequirePermission(action = "list", viewAll = "view_all")
     public ResponseEntity<?> list(HttpServletRequest request) {
         Map<String, String[]> parameters = request.getParameterMap();
         List<E> entities = service.getAll(parameters, request);
@@ -61,7 +61,7 @@ public abstract class BaseController<E, R, C, U, Rp extends JpaRepository<E, Lon
     }
 
     @GetMapping
-    @RequirePermission(action = "pagination", viewAll = "view_all")
+    // @RequirePermission(action = "pagination", viewAll = "view_all")
     public ResponseEntity<?> pagination(HttpServletRequest request) {
         Map<String, String[]> parameters = request.getParameterMap();
         Page<E> entities = service.paginate(parameters, request);

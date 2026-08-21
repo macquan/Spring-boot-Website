@@ -49,6 +49,10 @@ public abstract class BaseService<T, M extends BaseMapper<T, ?, C, U>, C, U, R e
 
     protected abstract M getMapper();
 
+    protected void preProcessRequest(C request) {
+
+    }
+
     private Map<String, String[]> modifyParameters(HttpServletRequest request, Map<String, String[]> parameters) {
         Map<String, String[]> modifiedParameters = new HashMap<>(parameters);
         Object userIdAttribute = request.getAttribute("userId");
@@ -131,6 +135,8 @@ public abstract class BaseService<T, M extends BaseMapper<T, ?, C, U>, C, U, R e
 
     @Transactional
     public T create(C request) {
+        preProcessRequest(request); // Gọi phương thức preProcessRequest để xử lý trước khi lưu đối tượng
+                                    // UserCatalogue.
         T payload = getMapper().toEntity(request); // Gọi phương thức toEntity của mapper để chuyển đổi
                                                    // StoreRequest thành đối tượng UserCatalogue.
         T entity = getRepository().save(payload); // Gọi phương thức save của repository để lưu đối tượng UserCatalogue

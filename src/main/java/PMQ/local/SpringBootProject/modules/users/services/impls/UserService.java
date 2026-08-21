@@ -10,16 +10,21 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import PMQ.local.SpringBootProject.modules.users.dtos.requests.LoginRequest;
+import PMQ.local.SpringBootProject.modules.users.dtos.requests.User.StoreRequest;
+import PMQ.local.SpringBootProject.modules.users.dtos.requests.User.UpdateRequest;
 import PMQ.local.SpringBootProject.modules.users.dtos.resources.LoginResource;
 import PMQ.local.SpringBootProject.modules.users.dtos.resources.UserResource;
 import PMQ.local.SpringBootProject.modules.users.entities.User;
+import PMQ.local.SpringBootProject.modules.users.mappers.UserMapper;
 import PMQ.local.SpringBootProject.modules.users.repositories.UserRepository;
 import PMQ.local.SpringBootProject.modules.users.services.interfaces.UserServiceInterface;
 import PMQ.local.SpringBootProject.resources.APIResource;
+import PMQ.local.SpringBootProject.services.BaseService;
 import PMQ.local.SpringBootProject.services.JwtService;
 
 @Service
-public class UserService implements UserServiceInterface {
+public class UserService extends BaseService<User, UserMapper, StoreRequest, UpdateRequest, UserRepository>
+        implements UserServiceInterface {
 
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
@@ -34,6 +39,32 @@ public class UserService implements UserServiceInterface {
 
     @Value("${jwt.defaultExpiration}")
     private long defaultExpiration;
+
+    private final UserMapper userMapper;
+
+    public UserService(UserMapper userMapper) {
+        this.userMapper = userMapper;
+    }
+
+    @Override
+    protected String[] getSearchFields() {
+        return new String[] { "name", "email", "phone" };
+    }
+
+    @Override
+    protected String[] getRelations() {
+        return new String[] { "userCatalogues" };
+    }
+
+    @Override
+    protected UserRepository getRepository() {
+        return userRepository;
+    }
+
+    @Override
+    protected UserMapper getMapper() {
+        return userMapper;
+    }
 
     @Override
     public Object authenticate(LoginRequest request) {
@@ -59,5 +90,12 @@ public class UserService implements UserServiceInterface {
             return APIResource.error("AUTH_ERROR: ", e.getMessage(), HttpStatus.UNAUTHORIZED);
         }
 
+    }
+
+    @Override
+    protected void preProcessRequest(StoreRequest request) {
+        if (request.getPassword() != null) {
+            request.setPassword(passwordEncoder.encode(request.getPassword()));
+        }
     }
 }
