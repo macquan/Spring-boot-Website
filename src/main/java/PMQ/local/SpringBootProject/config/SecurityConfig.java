@@ -43,13 +43,24 @@ public class SecurityConfig {
         // phép, và các chính sách bảo mật khác.
         http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        // 1. Routes AUTH = no JWT
-                        .requestMatchers("/api/v1/auth/login", "/api/v1/auth/refresh").permitAll() // Allow access to
-                        // /v1/auth/login and
-                        // /v1/auth/refresh without
-                        // authentication
-                        // 2. Routes PUBLIC
-                        .requestMatchers("/api/v1/products").permitAll()
+                        // 1. Swagger & OpenAPI Documentation
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/v3/api-docs",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/swagger-resources",
+                                "/swagger-resources/**",
+                                "/webjars/**")
+                        .permitAll()
+                        // 2. Routes AUTH = no JWT
+                        .requestMatchers(
+                                "/api/v1/auth/login",
+                                "/api/v1/auth/refresh")
+                        .permitAll()
+                        // 3. Routes PUBLIC
+                        .requestMatchers("/api/v1/products/**").permitAll()
+                        .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated() // Require authentication for all other requests
                 )
                 // Không lưu trữ session, mỗi request phải mang theo thông tin xác thực (ví dụ:

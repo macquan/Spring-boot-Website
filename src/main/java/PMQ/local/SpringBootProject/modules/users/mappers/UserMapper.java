@@ -27,6 +27,7 @@ public interface UserMapper extends BaseMapper<User, UserResource, StoreRequest,
     @BaseMapperAnnotation
     @Mapping(target = "userCatalogues", ignore = true) // Bỏ qua trường permissions khi ánh xạ từ CreateRequest sang
                                                        // Entity
+    @Mapping(target = "password", ignore = true) // Bỏ qua trường password khi ánh xạ từ UpdateRequest sang Entity
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEntityFromRequest(UpdateRequest updateRequest, @MappingTarget User entity);
 }

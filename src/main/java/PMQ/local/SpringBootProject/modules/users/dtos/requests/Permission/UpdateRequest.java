@@ -18,4 +18,6 @@ public class UpdateRequest {
                                                                                 // Archived
     private Integer publish;
 
+    @NotNull(message = "User ID is required")
+    private Integer userId;
 }

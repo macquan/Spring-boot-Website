@@ -5,21 +5,36 @@ import java.time.LocalDateTime;
 import org.springframework.http.HttpStatus;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+@Schema(description = "Standard API response structure")
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL) // Chỉ serialize các trường không null, giúp giảm kích thước dữ liệu trả về
                                            // và tránh gửi thông tin không cần thiết.
 public class APIResource<T> { // <T> là một generic type parameter, cho phép bạn định nghĩa một lớp có thể làm
                               // việc với nhiều loại dữ liệu khác nhau mà không cần phải tạo ra nhiều lớp
                               // riêng biệt cho từng loại dữ liệu.
-
+    @Schema(description = "Indicates whether the request was successful", example = "true")
     private boolean success;
+
+    @Schema(description = "A message providing additional information about the response", example = "Operation completed successfully")
     private String message;
+
+    @Schema(description = "The data returned by the API")
+    @JsonProperty("data") // Đặt tên trường trong JSON là "data" thay vì tên biến trong Java, giúp giữ
+                          // nguyên tên trường khi serialize sang JSON.
     private T data;
+
+    @Schema(description = "HTTP status code of the response", example = "200")
     private HttpStatus status;
+
+    @Schema(description = "Timestamp when the response was generated", example = "2023-10-10T10:10:10Z")
     private LocalDateTime timestamp;
+
+    @Schema(description = "Error details if the request was not successful")
     private ErrorResource error;
 
     @Data

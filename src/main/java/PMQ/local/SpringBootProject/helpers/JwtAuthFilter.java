@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,7 +18,6 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import tools.jackson.databind.ObjectMapper;
 
@@ -32,20 +29,22 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final CustomUserDetailsService customUserDetailsService;
     private final ObjectMapper objectMapper;
 
-    private static final Logger logger = LoggerFactory.getLogger(JwtAuthFilter.class);
-
     @Override
-    protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
+    protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        return path.startsWith("/api/v1/auth/login") || path.startsWith("/api/v1/auth/refresh"); // Giúp
-        // bỏ qua các endpoint
-        // xác thực, tránh
-        // vòng lặp xác thực
+        // Giúp bỏ qua các endpoint xác thực, tránh vòng lặp xác thực
+        return path.startsWith("/api/v1/auth/login") ||
+                path.startsWith("/api/v1/auth/refresh") ||
+                path.startsWith("/swagger-ui") ||
+                path.startsWith("/v3/api-docs") ||
+                path.startsWith("/swagger-resources") ||
+                path.startsWith("/webjars") ||
+                path.startsWith("/error");
     }
 
     @Override
-    public void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response,
-            @NonNull FilterChain filterChain)
+    public void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+            FilterChain filterChain)
             throws ServletException, IOException {
 
         try {
@@ -128,7 +127,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
     }
 
-    private void sendErrorResponse(@NotNull HttpServletResponse response, @NotNull HttpServletRequest request,
+    private void sendErrorResponse(@NonNull HttpServletResponse response, @NonNull HttpServletRequest request,
             int statusCode, String error,
             String message) throws IOException {
 

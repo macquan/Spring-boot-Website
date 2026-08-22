@@ -3,7 +3,6 @@ package PMQ.local.SpringBootProject.mappers;
 import java.util.List;
 
 import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.springframework.data.domain.Page;

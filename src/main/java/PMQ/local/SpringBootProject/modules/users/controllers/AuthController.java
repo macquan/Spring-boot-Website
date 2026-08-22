@@ -1,7 +1,5 @@
 package PMQ.local.SpringBootProject.modules.users.controllers;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,8 +21,10 @@ import PMQ.local.SpringBootProject.modules.users.services.interfaces.UserService
 import PMQ.local.SpringBootProject.resources.APIResource;
 import PMQ.local.SpringBootProject.resources.MessageResource;
 import PMQ.local.SpringBootProject.services.JwtService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
+@Tag(name = "Authentication API", description = "API for user authentication and token management")
 @Validated // Dùng để kích hoạt việc kiểm tra các ràng buộc (constraints) trên các tham số
            // của phương thức trong controller.
 @RestController
@@ -32,8 +32,6 @@ import jakarta.validation.Valid;
 public class AuthController {
 
     private final UserServiceInterface userService;
-
-    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     @Autowired
     private BlacklistService blacklistService;

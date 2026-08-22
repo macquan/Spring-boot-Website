@@ -13,9 +13,11 @@ import PMQ.local.SpringBootProject.modules.users.entities.Permission;
 import PMQ.local.SpringBootProject.modules.users.mappers.PermissionMapper;
 import PMQ.local.SpringBootProject.modules.users.repositories.PermissionRepository;
 import PMQ.local.SpringBootProject.modules.users.services.interfaces.PermissionServiceInterface;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
-// Dùng để kích hoạt việc kiểm tra các ràng buộc (constraints) trên các tham số của phương thức trong controller.
-@Validated
+@Tag(name = "Permission API", description = "API for managing permissions")
+@Validated // Dùng để kích hoạt việc kiểm tra các ràng buộc (constraints) trên các tham số
+           // của phương thức trong controller.
 @RestController
 @RequestMapping("/api/v1/permissions")
 public class PermissionController

@@ -18,4 +18,7 @@ public class StoreRequest {
                                                                                 // Archived
     private Integer publish;
 
+    @NotNull(message = "User ID is required")
+    private Integer userId;
+
 }

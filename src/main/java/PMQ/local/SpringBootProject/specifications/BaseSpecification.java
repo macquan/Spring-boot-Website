@@ -4,8 +4,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.domain.Specification;
 
 import jakarta.persistence.criteria.Predicate;
@@ -14,10 +12,8 @@ import jakarta.persistence.criteria.Predicate;
 
 public class BaseSpecification<T> {
 
-    private static final Logger logger = LoggerFactory.getLogger(BaseSpecification.class);
-
     // String keyword, String... fields: keyword là từ khóa tìm kiếm, fields là các
-    // trường dữ liệu mà từ khóa sẽ được tìm kiếm trong đó.
+    // trường dữ liệu mà từ khóa sẽ được tìm kiếm trong đó.''
     public static <T> Specification<T> keyword(String keyword, String... fields) {
         // Trả về một Specification dựa trên từ khóa và các trường dữ liệu được cung
         // cấp. Nếu từ khóa là null hoặc rỗng, nó sẽ trả về một điều kiện luôn đúng

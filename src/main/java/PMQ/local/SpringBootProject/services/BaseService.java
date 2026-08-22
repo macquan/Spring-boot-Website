@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Page;
@@ -32,8 +30,6 @@ import jakarta.transaction.Transactional;
 public abstract class BaseService<T, M extends BaseMapper<T, ?, C, U>, C, U, R extends JpaRepository<T, Long> & JpaSpecificationExecutor<T>> {
     // T: Entity type
     // R: Repository type
-
-    private static final Logger logger = LoggerFactory.getLogger(BaseService.class);
 
     @Autowired
     private ApplicationContext applicationContext;

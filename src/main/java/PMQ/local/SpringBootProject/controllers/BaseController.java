@@ -20,10 +20,17 @@ import PMQ.local.SpringBootProject.enums.PermissionEnum;
 import PMQ.local.SpringBootProject.mappers.BaseMapper;
 import PMQ.local.SpringBootProject.modules.users.services.interfaces.BaseServiceInterface;
 import PMQ.local.SpringBootProject.resources.APIResource;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
+@SecurityRequirement(name = "Bearer Authentication")
 public abstract class BaseController<E, R, C, U, Rp extends JpaRepository<E, Long> & JpaSpecificationExecutor<E>> {
     // E: Entity type
     // R: Resource type
@@ -48,16 +55,32 @@ public abstract class BaseController<E, R, C, U, Rp extends JpaRepository<E, Lon
         return module;
     }
 
+    @Operation(summary = "List records and search", description = "Retrieve a list of entities with optional filtering and sorting.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Entities retrieved successfully", content = @Content(schema = @Schema(implementation = APIResource.class))),
+            @ApiResponse(responseCode = "403", description = "Access denied", content = @Content(schema = @Schema(implementation = APIResource.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = APIResource.class)))
+
+    })
     @GetMapping("/list")
     // @RequirePermission(action = "list", viewAll = "view_all")
     public ResponseEntity<?> list(HttpServletRequest request) {
-        Map<String, String[]> parameters = request.getParameterMap();
-        List<E> entities = service.getAll(parameters, request);
-        List<R> resources = mapper.toList(entities);
-        APIResource<List<R>> response = APIResource.ok(resources,
-                "Entities retrieved successfully");
+        try {
+            Map<String, String[]> parameters = request.getParameterMap();
+            List<E> entities = service.getAll(parameters, request);
+            List<R> resources = mapper.toList(entities);
+            APIResource<List<R>> response = APIResource.ok(resources,
+                    "Entities retrieved successfully");
 
-        return ResponseEntity.ok(response);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            String message = "An unexpected error occurred in the store operation: " + e.getMessage();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(APIResource.error("INTERNAL_SERVER_ERROR", message,
+                            HttpStatus.INTERNAL_SERVER_ERROR));
+
+        }
+
     }
 
     @GetMapping

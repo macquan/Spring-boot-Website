@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component;
 import PMQ.local.SpringBootProject.annotations.RequirePermission;
 import PMQ.local.SpringBootProject.controllers.BaseController;
 import PMQ.local.SpringBootProject.helpers.CustomPermissionEvaluator;
-import PMQ.local.SpringBootProject.modules.users.controllers.AuthController;
 import PMQ.local.SpringBootProject.modules.users.dtos.resources.CustomUserDetail;
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -25,16 +24,10 @@ import jakarta.servlet.http.HttpServletRequest;
 public class PermissionAspect {
     // Dùng để kiểm tra quyền truy cập dựa trên annotation @RequirePermission
 
-    private final AuthController authController;
-
     private final Logger logger = LoggerFactory.getLogger(PermissionAspect.class);
 
     @Autowired
     private CustomPermissionEvaluator customPermissionEvaluator;
-
-    PermissionAspect(AuthController authController) {
-        this.authController = authController;
-    }
 
     @Before("@annotation(requirePermission)") // Mỗi khi phương thức này được gọi, trước khi thực hiện, sẽ kiểm tra
                                               // quyền truy cập của người dùng dựa trên annotation @RequirePermission

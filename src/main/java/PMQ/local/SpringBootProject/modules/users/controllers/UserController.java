@@ -17,8 +17,15 @@ import PMQ.local.SpringBootProject.modules.users.mappers.UserMapper;
 import PMQ.local.SpringBootProject.modules.users.repositories.UserRepository;
 import PMQ.local.SpringBootProject.modules.users.services.interfaces.UserServiceInterface;
 import PMQ.local.SpringBootProject.resources.APIResource;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.transaction.Transactional;
 
+@Tag(name = "User API", description = "API for managing users")
 @RestController
 @RequestMapping("/api/v1/users")
 public class UserController
@@ -35,6 +42,11 @@ public class UserController
                 super(service, mapper, repo, PermissionEnum.USER);
         }
 
+        @Operation(summary = "Get current user", description = "Retrieve information about the currently authenticated user.")
+        @ApiResponses({
+                        @ApiResponse(responseCode = "200", description = "User information retrieved successfully", content = @Content(schema = @Schema(implementation = APIResource.class))),
+                        @ApiResponse(responseCode = "403", description = "Access denied", content = @Content(schema = @Schema(implementation = APIResource.class)))
+        })
         @Transactional()
         @GetMapping("/me")
         public ResponseEntity<?> me() {
